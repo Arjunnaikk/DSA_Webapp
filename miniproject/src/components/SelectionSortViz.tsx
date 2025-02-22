@@ -162,7 +162,7 @@ const handlePause = () => {
 
 const handleSeek = async (step: number) => {
 
-  const response = await fetch(`http://localhost:8080/api/sorting/step/${step}`);
+  const response = await fetch(`http://localhost:8080/api/sort/selection/step/${step}`);
   // console.log(step);
   const stepData = await response.json();
   setState(stepData.state);
@@ -176,7 +176,7 @@ const handleSeek = async (step: number) => {
 useEffect(() => {
   const initializeNewArray = async () => {
     try {
-      const response = await fetch('http://localhost:8080/api/sorting/selection', {
+      const response = await fetch('http://localhost:8080/api/sort/selection/init', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -508,7 +508,7 @@ const PlaySteps = async (): Promise<void> => {
   if (!isAnimating) {
     setIsAnimating(true);
     try {
-      const response = await fetch(`http://localhost:8080/api/sorting/step/${countStep}`, {
+      const response = await fetch(`http://localhost:8080/api/sort/selection/step/${countStep}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -600,13 +600,6 @@ const PlaySteps = async (): Promise<void> => {
     }
   }
 };
-  
-
-
-
-
-
-
 
   const nextStep = async (): Promise<void> => {
       
@@ -637,7 +630,7 @@ const PlaySteps = async (): Promise<void> => {
       }
       setComparingIndex(null);
 
-      const response = await fetch('http://localhost:8080/api/sorting/step', {
+      const response = await fetch('http://localhost:8080/api/sort/selection/step', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -684,7 +677,7 @@ const PlaySteps = async (): Promise<void> => {
 
       // for (tempIndex = 0; tempIndex < state.currentIndex - 1; tempIndex++) {
       
-        const response = await fetch(`http://localhost:8080/api/sorting/step/${countStep-1}`, {
+        const response = await fetch(`http://localhost:8080/api/sort/selection/step/${countStep-1}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -733,7 +726,7 @@ const PlaySteps = async (): Promise<void> => {
     setIsAnimating(true);
     setIsPlaying(false);
     try {
-      const response = await fetch('http://localhost:8080/api/sorting/step', {
+      const response = await fetch('http://localhost:8080/api/sort/selection/step', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

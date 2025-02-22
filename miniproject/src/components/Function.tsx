@@ -7,6 +7,7 @@ import { ArrowDownUp, RefreshCw, Copy } from 'lucide-react';
 import { ModeToggle } from './ModeToggle';
 import SpeedControlSlider from './SpeedControlSlider';
 import InsertionSortViz from '@/components/InsertionSortViz';
+
 const Funtions = () => {
   const [algorithm, setAlgorithm] = useState('selection');
   const [arraySize, setArraySize] = useState('6');
