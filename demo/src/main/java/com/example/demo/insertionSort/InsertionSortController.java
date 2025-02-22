@@ -8,7 +8,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/sort/insertion")
 @CrossOrigin(origins = "*")
-public class SortController {
+public class InsertionSortController {
 
     @Autowired
     private SortService sortService;
