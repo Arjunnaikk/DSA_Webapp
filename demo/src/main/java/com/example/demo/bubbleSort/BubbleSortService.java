@@ -20,6 +20,7 @@ public class BubbleSortService {
 
         // Perform bubble sort and store steps
         int n = sortedArray.length;
+        // Add initial step
         for (int i = 0; i < n - 1; i++) {
             // Add newly sorted index from previous iteration
             if (i > 0) {
@@ -27,8 +28,8 @@ public class BubbleSortService {
             }
             
             for (int j = 0; j < n - i - 1; j++) {
-                addStep(sortedArray.clone(), j + 1, j , sortedIndices, false, array, null);
                 // Add step before comparison
+                addStep(sortedArray.clone(), j + 1, j , sortedIndices, false, array, null);
                 
                 if (sortedArray[j] > sortedArray[j + 1]) {
                     // Swap elements
@@ -37,12 +38,14 @@ public class BubbleSortService {
                     sortedArray[j + 1] = temp;
                     
                     // Add step after swap
+                    // if(j + 2 < n) {
                     addStep(sortedArray.clone(), j + 1, j, sortedIndices, false, array, "swap");
+                    // }
                 }
-            }
+            } 
         }
-
         // Add final sorted index and step
+        sortedIndices.add(1);
         sortedIndices.add(0);
         addStep(sortedArray.clone(), n - 1, n - 1, sortedIndices, true, array, null);
 

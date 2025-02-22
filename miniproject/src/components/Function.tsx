@@ -11,7 +11,7 @@ import InsertionSortViz from '@/components/InsertionSortViz';
 const Funtions = () => {
   const [algorithm, setAlgorithm] = useState('selection');
   const [arraySize, setArraySize] = useState('6');
-  const [userArray, setUserArray] = useState(Array.from({ length: 6 }, () => Math.floor(Math.random() * 100) + 1).join(', '));  
+  const [userArray, setUserArray] = useState(Array.from({ length: 6 }, () => Math.floor(Math.random() * 50) + 1).join(', '));  
   const [sortOrder, setSortOrder] = useState('ascending');
   const [shouldSort, setShouldSort] = useState(false);
   const [showVisualization, setShowVisualization] = useState(true); // Start with visualization shown
@@ -48,7 +48,7 @@ const handleGoClick = async () => {
     const size = parseInt(arraySize);
     if (!isNaN(size) && size > 0 && size <= 100) {
       const randomArray = Array.from({ length: size }, 
-        () => Math.floor(Math.random() * 100) + 1);
+        () => Math.floor(Math.random() * 50) + 1);
       setUserArray(randomArray.join(', '));
       // handleGoClick();
       // setShouldSort(false);
