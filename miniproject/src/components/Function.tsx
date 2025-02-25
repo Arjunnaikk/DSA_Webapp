@@ -45,7 +45,7 @@ const Functions = () => {
     const size = parseInt(arraySize);
     if (!isNaN(size) && size > 0 && size <= 100) {
       const randomArray = Array.from({ length: size }, 
-        () => Math.floor(Math.random() * 100) + 1);
+        () => Math.floor(Math.random() * 50) + 1);
       setUserArray(randomArray.join(', '));
       setCurrentArray(randomArray);
       setShowVisualization(true);

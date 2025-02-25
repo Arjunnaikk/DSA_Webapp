@@ -36,6 +36,7 @@ public class SortService {
                 sortedArray[j + 1] = sortedArray[j];
                 sortedArray[j] = key;   
                 
+                
                 // Add shift step
                 addStep(sortedArray.clone(), j + 1, j, sortedIndices, false, array, "swap");
                 

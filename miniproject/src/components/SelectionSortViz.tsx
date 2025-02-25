@@ -54,10 +54,10 @@ const SelectionSortViz: React.FC<SelectionSortVizProps> = ({ array , speed }) =>
   const [swappingPairs, setSwappingPairs] = useState<{from: number, to: number} | null>(null);
   const [showTooltip, setShowTooltip] = useState(false);
   const [countStep , setCountStep] = useState<number>(0);
-   const [currentStep, setCurrentStep] = useState(0);
-    const [isPlaying, setIsPlaying] = useState(false);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
     // const [sortingSteps, setSortingSteps] = useState<SortStep[]>([]);
-    const [totalSteps, setTotalSteps] = useState(0);
+  const [totalSteps, setTotalSteps] = useState(0);
   // const [tooltipPosition, setTooltipPosition] = useState({ x: 1300 / 2, y:  500 - 120 + 70});
 
   const arrayLength = state.array.length;
@@ -265,12 +265,13 @@ useEffect(() => {
       .append("g")
       .attr("class", "bar")
       .attr("transform", (_, i) => `translate(${xScale(i.toString()) || 0}, 0)`);
+
       barsEnter.append("path")
       .attr("d", (d) => {
         const x = 0;
-        const y = yScale(d);
+        const y = yScale(d+2);
         const width = xScale.bandwidth();
-        const barHeight = (yScale.range()[0]) - yScale(d);
+        const barHeight = (yScale.range()[0]) - yScale(d+2);
         const radius = 6;
     
         return arrayLength <= 18 ? 
@@ -601,13 +602,6 @@ const PlaySteps = async (): Promise<void> => {
     }
   }
 };
-  
-
-
-
-
-
-
 
   const nextStep = async (): Promise<void> => {
       
@@ -616,14 +610,15 @@ const PlaySteps = async (): Promise<void> => {
 
     try {
       setCountStep((prev: number) => prev + arrayLength - state.currentIndex);
-     
-       let minIdx = state.currentIndex;
+      setCurrentStep(countStep);
+      let minIdx = state.currentIndex;
       
       setState(prev => ({
         ...prev,
         minIndex: minIdx
       }));
       for (let i = state.currentIndex + 1; i < state.array.length; i++) {
+        setCurrentStep(prev => prev + 1);
         setComparingIndex(i);
         await sleep(800/ speed);
         
@@ -661,6 +656,7 @@ const PlaySteps = async (): Promise<void> => {
         await sleep(800 / speed); // Longer pause during swap
         setSwappingPairs(null);
       }
+      setCurrentStep(prev => prev + 1);
       
       setState(prev => ({
         ...newState,
@@ -722,6 +718,7 @@ const PlaySteps = async (): Promise<void> => {
       setComparingIndex(null);
 
       setCountStep((prev: number) => prev - arrayLength + (state.currentIndex - 1));
+      setCurrentStep((prev: number) => prev - arrayLength + (state.currentIndex - 2));
       console.log(countStep)  
     } catch (error) {
       console.error('Error during previous step:', error);
@@ -755,6 +752,7 @@ const PlaySteps = async (): Promise<void> => {
       setComparingIndex(null);
       setSwappingPairs(null);
       setCountStep(0);
+      setCurrentStep(0);
     } catch (error) {
       console.error('Error resetting sort:', error);
     } finally {
