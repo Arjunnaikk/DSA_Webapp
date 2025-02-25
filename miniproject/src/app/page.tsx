@@ -6,6 +6,7 @@ import CustomSortComponent from '@/components/Function'
 // import MediaPlayer from '@/components/MediaPlayer'
 import SpeedControlSlider from '@/components/SpeedControlSlider'
 import Funtions from '@/components/Function'
+import Navbar from '@/components/Navbar'
 
 export default function Home() {
   const [mounted, setMounted] = useState(false)
@@ -17,10 +18,10 @@ export default function Home() {
   if (!mounted) return null
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-2">
+    <main className="flex min-h-screen flex-col items-center justify-center">
     
       
-
+      {/* <Navbar/> */}
 
       <Funtions/>
 

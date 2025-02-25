@@ -1,69 +1,62 @@
 "use client"
-import SelectionSortViz from '@/components/SelectionSortViz'
 import React, { useEffect, useState } from 'react';
+import SelectionSortViz from '@/components/SelectionSortViz';
+import InsertionSortViz from '@/components/InsertionSortViz';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ArrowDownUp, RefreshCw, Copy } from 'lucide-react';
+import { ArrowDownUp, RefreshCw, Copy, User, BarChart, Timer, Settings, ChevronRight, Pencil } from 'lucide-react';
 import { ModeToggle } from './ModeToggle';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import SpeedControlSlider from './SpeedControlSlider';
-import InsertionSortViz from '@/components/InsertionSortViz';
-const Funtions = () => {
+
+const Functions = () => {
+  const [isControlsOpen, setIsControlsOpen] = useState(false);
   const [algorithm, setAlgorithm] = useState('selection');
   const [arraySize, setArraySize] = useState('6');
-  const [userArray, setUserArray] = useState(Array.from({ length: 6 }, () => Math.floor(Math.random() * 100) + 1).join(', '));  
+  const [userArray, setUserArray] = useState(Array.from({ length: 6 }, () => Math.floor(Math.random() * 100) + 1).join(', '));
   const [sortOrder, setSortOrder] = useState('ascending');
   const [shouldSort, setShouldSort] = useState(false);
-  const [showVisualization, setShowVisualization] = useState(true); // Start with visualization shown
-  const [speed , setSpeed] = useState(1); 
-  // const [change , setChange] = useState(false);
+  const [showVisualization, setShowVisualization] = useState(true);
+  const [speed, setSpeed] = useState(1);
   const [currentArray, setCurrentArray] = useState(() => {
-  // Initialize with random array on page load
-  // const initialSize = 6;
-  return userArray.split(',').map(num => parseInt(num.trim()));
-});
+    return userArray.split(',').map(num => parseInt(num.trim()));
+  });
 
-console.log(shouldSort);
+  const handleGoClick = () => {
+    const newArray = userArray.split(',').map(num => parseInt(num.trim()));
+    setCurrentArray(newArray);
+    setShowVisualization(true);
+  };
 
-
-const handleGoClick = async () => {
-  // Parse and validate the array
-  const newArray = userArray.split(',').map(num => parseInt(num.trim()));
-  setCurrentArray(prev => newArray);
-  setShowVisualization(true);
-  // setChange(true);
-};
-  let arraySizeCheck = true;
-
-  if(parseInt(arraySize) > 100 || parseInt(arraySize) < 0){
-    arraySizeCheck = false;
-  }
+  let arraySizeCheck = parseInt(arraySize) <= 100 && parseInt(arraySize) > 0;
 
   const toggleSortOrder = () => {
     setShouldSort(true);
     setSortOrder(sortOrder === 'ascending' ? 'descending' : 'ascending');
   };
 
-  const generateRandomArray = async () => {
+  const generateRandomArray = () => {
     const size = parseInt(arraySize);
     if (!isNaN(size) && size > 0 && size <= 100) {
       const randomArray = Array.from({ length: size }, 
         () => Math.floor(Math.random() * 100) + 1);
       setUserArray(randomArray.join(', '));
-      // handleGoClick();
-      // setShouldSort(false);
-      setCurrentArray(prev => randomArray);
+      setCurrentArray(randomArray);
       setShowVisualization(true);
-      // setChange(true);
     }
   };
 
   const duplicateArray = () => {
-    if(parseInt(arraySize) < 51){
-      if (userArray) {
-        setUserArray(`${userArray}, ${userArray}`);
-        setShouldSort(false);
-      }
-    } 
+    if (parseInt(arraySize) < 51 && userArray) {
+      setUserArray(`${userArray}, ${userArray}`);
+      setShouldSort(false);
+    }
   };
 
   const handleArrayInput = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -89,161 +82,205 @@ const handleGoClick = async () => {
       setShouldSort(false);
       setShowVisualization(true);
     }
-  };  
-
-  // useEffect(() => {
-  //   const initializeNewArray = async () => {
-  //     try {
-        
-  //       if(change){
-          
-  //         const response = await fetch('http://localhost:8080/api/sorting/selection', {
-  //           method: 'POST',
-  //           headers: {
-  //             'Content-Type': 'application/json',
-  //           },
-  //           body: JSON.stringify({
-  //               array: currentArray
-  //           })
-  //         });
-
-  //         setChange(false);
-  //       }
-  //     } catch (error) {
-  //       console.error('Error initializing new array:', error);
-  //     }
-  //   };
-  
-  //   initializeNewArray();
-  // }, [change]);
+  };
 
   useEffect(() => {
     if (shouldSort && userArray) {
       const array = userArray.split(',').map(Number);
-      const sortedArray = [...array].sort((a, b) => {
-        if (sortOrder === 'ascending') {
-          return b - a;
-        } else {
-          return a - b;
-        }
-      });
+      const sortedArray = [...array].sort((a, b) => 
+        sortOrder === 'ascending' ? b - a : a - b
+      );
       setUserArray(sortedArray.join(', '));
       setShouldSort(false);
       setCurrentArray(sortedArray);
       setShowVisualization(true);
     }
   }, [sortOrder, userArray, shouldSort]);
-    
+
   return (
+    <div className="relative min-h-screen bg-gray-50">
+      {/* Navbar */}
+      <nav className="h-[50px] w-full bg-white border-b border-gray-200 fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 shadow-md">
+      <div className="flex items-center gap-4">
+          <span className="text-xl font-bold bg-gradient-to-r from-orange-500 to-purple-600 bg-clip-text text-transparent">
+            EzzAlgo
+          </span>
+          <Select>
+            <SelectTrigger className="w-48 bg-white border-2 border-gray-200 hover:border-indigo-400 text-gray-800 h-[30px] w-[10rem] transition-colors">
+              <SelectValue placeholder="Select Algorithm" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="selection">Selection Sort</SelectItem>
+              <SelectItem value="insertion">Insertion Sort</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex items-center gap-4">
+          <ModeToggle />
+          <Button variant="outline" className="flex items-center h-[33px] w-[90px] p-0 gap-2 border-2 border-zinc-400 bg-zinc-100 hover:bg-zinc-900 text-gray-800 hover:text-gray-100">
+            <User className="h-5 w-5" />
+            <span className="font-small">Login</span>
+          </Button>
+        </div>
+      </nav>
 
-          <>
-          <ModeToggle/>
-          <Button 
-  variant="outline" 
-  onClick={() => setAlgorithm(algorithm === 'selection' ? 'insertion' : 'selection')}
-  className='mt-2'
->
-  <span className="ml-2">{algorithm === 'selection' ? 'Selection Sort' : 'Insertion Sort'}</span>
-</Button>
-{showVisualization && (
-  algorithm === 'selection' ? (
-    <SelectionSortViz 
-      key={currentArray.join(',')}
-      array={currentArray}
-      speed={speed}
-    />
-  ) : (
-    <InsertionSortViz 
-      key={currentArray.join(',')}
-      array={currentArray}
-      speed={speed}
-    />
-  )
-)}
-
-        <div className="space-y-4 p-4 bg-white rounded-lg shadow">
-          <div className="flex items-center space-x-2">
-            <div className={arraySizeCheck ? 'relative translate-y-1' : 'relative -translate-y-2'}>
-              <span className={arraySizeCheck ? 'hidden' : 'text-red-400 text-sm font-small italic'}>Allowed (1-100)</span>
-              <Input
-                type="number"
-                placeholder="Array size"
-                value={arraySize}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setArraySize(e.target.value)}
-                className="w-32"
-              />
+      {/* Fixed Layout Container */}
+      <div className="flex pt-[50px] min-h-screen">
+        {/* Sidebar */}
+        <div
+          className={`fixed left-0 top-[50px] h-[calc(100vh-50px)] bg-white transition-all duration-500 ease-in-out ${
+            isControlsOpen ? "w-72" : "w-16"
+          } border-r border-gray-200 shadow-lg`}
+          onMouseEnter={() => setIsControlsOpen(true)}
+          onMouseLeave={() => setIsControlsOpen(false)}
+        >
+          <div className="relative h-full">
+            {/* Collapsed Sidebar */}
+            <div className={`py-6 space-y-8 flex flex-col items-center ${isControlsOpen ? 'hidden' : 'block'}`}>
+              <div className="hover:bg-indigo-50 p-2 rounded-lg transition-colors">
+                <BarChart className="h-5 w-5 text-indigo-700" />
+              </div>
+              <div className="hover:bg-indigo-50 p-2 rounded-lg transition-colors">
+                <Settings className="h-5 w-5 text-indigo-700" />
+              </div>
+              <div className="hover:bg-indigo-50 p-2 rounded-lg transition-colors">
+                <Timer className="h-5 w-5 text-indigo-700" />
+              </div>
             </div>
 
-            <Button 
-              variant="outline" 
-              onClick={generateRandomArray}
-              title="Generate Random Array"
-              className='mt-2'
-            >
-              <RefreshCw className="h-4 w-4" />
-              <span className="ml-2">Random</span>
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={toggleSortOrder}
-              title={`Toggle to ${sortOrder === 'ascending' ? 'Descending' : 'Ascending'} Sort`}
-              className='mt-2'
-            >
-              <ArrowDownUp className="h-4 w-4" />
-              <span className="ml-2">{sortOrder.charAt(0).toUpperCase() + sortOrder.slice(1)}</span>
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={createRandomDuplicates}
-              title="Create Random Duplicates"
-              className='mt-2'
-            >
-              <Copy className="h-4 w-4" />
-              <span className="ml-2">Many Duplicates</span>
-            </Button>
-          </div>
+            {/* Expanded Sidebar */}
+            <div className={`p-6 flex flex-col gap-8 space-y-6 h-full ${isControlsOpen ? 'block' : 'hidden'}`}>
+              {/* Array Size Section */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-indigo-950 font-semibold bg-indigo-200 p-2 rounded-lg">
+                  <BarChart className="h-5 w-5" />
+                  <span>Array Size</span>
+                </div>
+                <div className="space-y-1 px-2">
+                  <Input
+                    type="number"
+                    placeholder="Array size"
+                    value={arraySize}
+                    onChange={(e) => setArraySize(e.target.value)}
+                    className="w-full border-2 focus:ring-2 focus:ring-indigo-200"
+                  />
+                  {!arraySizeCheck && (
+                    <span className="text-red-400 text-sm">Allowed (1-100)</span>
+                  )}
+                </div>
+              </div>
 
-          <div className="flex items-center space-x-2">
-            <Input
-              type="text"
-              placeholder="Enter your custom array (e.g. 3, 1, 4, 1, 5, 9)"
-              value={userArray}
-              onChange={handleArrayInput}
-              className="flex-grow"
-            />
-            <Button 
-              variant="outline" 
-              onClick={duplicateArray}
-              title="Duplicate Array"
+              {/* Array Controls Section */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-indigo-950 font-semibold bg-indigo-200 p-2 rounded-lg">
+                  <Settings className="h-5 w-5" />
+                  <span>Array Controls</span>
+                </div>
+                <div className="grid grid-cols-1 gap-2 px-2">
+                  <Button
+                    onClick={generateRandomArray}
+                    variant="outline"
+                    className="w-full justify-start hover:bg-indigo-50 border-2"
+                  >
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Random Array
+                  </Button>
+                  <Button
+                    onClick={toggleSortOrder}
+                    variant="outline"
+                    className="w-full justify-start hover:bg-indigo-50 border-2"
+                  >
+                    <ArrowDownUp className="h-4 w-4 mr-2" />
+                    {sortOrder.charAt(0).toUpperCase() + sortOrder.slice(1)}
+                  </Button>
+                  <Button
+                    onClick={createRandomDuplicates}
+                    variant="outline"
+                    className="w-full justify-start hover:bg-indigo-50 border-2"
+                  >
+                    <Copy className="h-4 w-4 mr-2" />
+                    Random Duplicates
+                  </Button>
+                </div>
+              </div>
+
+              {/* Speed Control Section */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-indigo-950 font-semibold bg-indigo-200 p-2 rounded-lg">
+                  <Timer className="h-5 w-5" />
+                  <span>Animation Speed</span>
+                </div>
+                <div className="px-2">
+                  <SpeedControlSlider speed={speed} setSpeed={setSpeed} />
+                </div>
+              </div>
+            </div>
+
+            {/* Expand/Collapse Handle */}
+            <div 
+              className={`absolute top-1/2 -translate-y-1/2 -right-3 bg-white border-2 border-gray-200 rounded-full p-1 cursor-pointer shadow-md ${
+                isControlsOpen ? 'rotate-180' : ''
+              } transition-transform duration-300`}
             >
-              <Copy className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="default"
-              onClick={handleGoClick}
-              className="bg-blue-500 hover:bg-blue-600 text-white"
-            >
-              Go
-            </Button>
+              <ChevronRight className="h-4 w-4 text-gray-600" />
+            </div>
           </div>
         </div>
-        <SpeedControlSlider speed = {speed} setSpeed = {setSpeed}/>
-      </>
-    );
-  
+
+        {/* Main Content - Now with fixed margin */}
+        <div className="flex-1 ml-16">
+          {/* Visualization */}
+          {showVisualization && (
+            <div className="w-full h-[calc(100vh-130px)] flex justify-center items-center">
+              {algorithm === 'selection' ? (
+                <SelectionSortViz 
+                  key={currentArray.join(',')}
+                  array={currentArray}
+                  speed={speed}
+                />
+              ) : (
+                <InsertionSortViz 
+                  key={currentArray.join(',')}
+                  array={currentArray}
+                  speed={speed}
+                />
+              )}
+            </div>
+          )}
+
+          {/* Main Page Controls */}
+          <div className="fixed top-[70px] left-[30%] shadow w-[40vw] max-w-4xl mx-auto space-y-4 p-4 bg-white">
+            <div className="flex items-center space-x-2">
+              <Input
+                type="text"
+                placeholder="Enter your custom array (e.g. 3, 1, 4, 1, 5, 9)"
+                value={userArray}
+                onChange={handleArrayInput}
+                className="flex-grow"
+              />
+              <Button 
+                variant="outline" 
+                onClick={duplicateArray}
+                title="Duplicate Array"
+                className="min-w-[40px]"
+              >
+                <Copy className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="default"
+                onClick={handleGoClick}
+                className="bg-blue-500 hover:bg-blue-600 text-white min-w-[60px]"
+              >
+                <Pencil />
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 };
 
-export default Funtions;
-
-
-
-
-
-
-
-
-
-
-
+export default Functions;
 
 

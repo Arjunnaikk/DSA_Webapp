@@ -2,6 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
 import MediaPlayer from './MediaPlayer';
+import { ChevronFirst, ChevronLast, RotateCcw } from 'lucide-react';
 
 interface SortState {
   array: number[];
@@ -61,8 +62,8 @@ const SelectionSortViz: React.FC<SelectionSortVizProps> = ({ array , speed }) =>
 
   const arrayLength = state.array.length;
 
-  const width = 1300;
-  const height = 500;
+  const width = 1450;
+  const height = 450;
   const margin = { top: (Math.max(...state.initialArray)) <= 75 ? (200 - (Math.max(...state.initialArray) * 1.5)) : 80, right: (642 - (arrayLength * 16)) > 260 ? (642 - (arrayLength * 16)) : 260, bottom: 120, left: (642 - (arrayLength * 16)) > 260 ? (642 - (arrayLength * 16)) : 260 };
   const barPadding = 0.2;
   const tooltipWidth = 480; // Increased fixed width for tooltip
@@ -85,7 +86,7 @@ console.log(state.array);
 //       // await sleep(800);
 //       setIsAnimating(true);
 //       try {
-//         const response = await fetch(`http://localhost:8080/api/sorting/step/${countStep}`, {
+//         const response = await fetch(`http://localhost:8080/api/sort/step/${countStep}`, {
 //           method: 'GET',
 //           headers: {
 //             'Content-Type': 'application/json',
@@ -162,7 +163,7 @@ const handlePause = () => {
 
 const handleSeek = async (step: number) => {
 
-  const response = await fetch(`http://localhost:8080/api/sorting/step/${step}`);
+  const response = await fetch(`http://localhost:8080/api/sort/selection/step/${step}`);
   // console.log(step);
   const stepData = await response.json();
   setState(stepData.state);
@@ -176,7 +177,7 @@ const handleSeek = async (step: number) => {
 useEffect(() => {
   const initializeNewArray = async () => {
     try {
-      const response = await fetch('http://localhost:8080/api/sorting/selection', {
+      const response = await fetch('http://localhost:8080/api/sort/selection/init', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -508,7 +509,7 @@ const PlaySteps = async (): Promise<void> => {
   if (!isAnimating) {
     setIsAnimating(true);
     try {
-      const response = await fetch(`http://localhost:8080/api/sorting/step/${countStep}`, {
+      const response = await fetch(`http://localhost:8080/api/sort/selection/step/${countStep}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -637,7 +638,7 @@ const PlaySteps = async (): Promise<void> => {
       }
       setComparingIndex(null);
 
-      const response = await fetch('http://localhost:8080/api/sorting/step', {
+      const response = await fetch('http://localhost:8080/api/sort/selection/step', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -684,7 +685,7 @@ const PlaySteps = async (): Promise<void> => {
 
       // for (tempIndex = 0; tempIndex < state.currentIndex - 1; tempIndex++) {
       
-        const response = await fetch(`http://localhost:8080/api/sorting/step/${countStep-1}`, {
+        const response = await fetch(`http://localhost:8080/api/sort/selection/step/${countStep-1}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -733,7 +734,7 @@ const PlaySteps = async (): Promise<void> => {
     setIsAnimating(true);
     setIsPlaying(false);
     try {
-      const response = await fetch('http://localhost:8080/api/sorting/step', {
+      const response = await fetch('http://localhost:8080/api/sort/selection/step', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -762,56 +763,49 @@ const PlaySteps = async (): Promise<void> => {
   };
 
   return (
-    <div className="flex flex-col items-center gap-4 p-4">
+    <div className="flex flex-col items-center gap-4">
       <svg 
         ref={svgRef}
         width={width}
         height={height}
-        className="bg-white rounded-lg shadow-lg"
+        className=""
       />
       
-      <div className="flex gap-4">
-        <button
-          onClick={previousStep}
-          disabled={isAnimating || state.currentIndex <= 0 || isPlaying}
-          className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 
-                     text-white rounded-lg shadow-md hover:from-blue-600 
-                     hover:to-blue-700 disabled:opacity-50 
-                     disabled:cursor-not-allowed"
-        >
-          Previous Step
-        </button>
-        <button
-          onClick={nextStep}
-          disabled={isAnimating || state.isCompleted || state.sortedIndices.length >= state.array.length || isPlaying}
-          className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 
-                     text-white rounded-lg shadow-md hover:from-blue-600 
-                     hover:to-blue-700 disabled:opacity-50 
-                     disabled:cursor-not-allowed"
-        >
-          Next Step
-        </button>
-        <button
-          onClick={resetSort}
-          // disabled={}
-          className="px-4 py-2 bg-gradient-to-r from-gray-500 to-gray-600 
-                     text-white rounded-lg shadow-md hover:from-gray-600 
-                     hover:to-gray-700 disabled:opacity-50 
-                     disabled:cursor-not-allowed"
-        >
-          Reset
-        </button>
-      </div>
-      
-      <MediaPlayer 
-        currentStep={currentStep}
-        totalSteps={totalSteps}
-        isPlaying={isPlaying}
-        onPlay={handlePlay}
-        onPause={handlePause}
-        onSeek={handleSeek}
-      />
+      <div className="flex gap-4 w-full justify-center bottom-0 fixed bg-black py-3 px-5 left-0">
+  <button
+    onClick={resetSort}
+    className="px-3 py-3 bg-gradient-to-r from-gray-500 to-gray-600 
+               text-white rounded-full shadow-md hover:from-gray-600 
+               hover:to-gray-700 disabled:opacity-50 
+               disabled:cursor-not-allowed"
+  >
+    <RotateCcw />
+  </button>
+  <button
+    onClick={previousStep}
+    disabled={isAnimating || state.currentIndex <= 0 || isPlaying}
+    className="px-3 py-3 bg-gradient-to-r from-blue-500 to-blue-600 
+               text-white rounded-full shadow-md hover:from-blue-600 
+               hover:to-blue-700 disabled:opacity-50 
+               disabled:cursor-not-allowed"
+  >
+    <ChevronFirst />
+  </button>
+  
+  <MediaPlayer 
+    currentStep={currentStep}
+    totalSteps={totalSteps}
+    isPlaying={isPlaying}
+    onPlay={handlePlay}
+    onPause={handlePause}
+    onSeek={handleSeek}
+    nextStep={nextStep}
+    isAnimating={isAnimating}
+    state={state}
 
+  />
+
+</div>    
     </div>
   );
 };
