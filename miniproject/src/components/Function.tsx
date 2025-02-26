@@ -161,7 +161,10 @@ const Functions = () => {
                     type="number"
                     placeholder="Array size"
                     value={arraySize}
-                    onChange={(e) => setArraySize(e.target.value)}
+                    onChange={(e) => {
+                      setArraySize(e.target.value);
+                      generateRandomArray();
+                    }}
                     className="w-full border-2 focus:ring-2 focus:ring-indigo-200"
                   />
                   {!arraySizeCheck && (
