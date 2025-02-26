@@ -26,22 +26,22 @@ interface SortingResult {
   totalSteps: number;
 }
 
-interface MockApiResponse {
-  originalArray?: number[];
-  sortedArray?: number[];
-  totalSteps?: number;
-  message?: string;
-  state?: {
-    array: number[];
-    currentIndex: number;
-    minIndex: number;
-    sortedIndices: number[];
-    completed: boolean;
-    initialArray: number[];
-  };
-  stepNumber?: number;
-  error?: string;
-}
+// interface MockApiResponse {
+//   originalArray?: number[];
+//   sortedArray?: number[];
+//   totalSteps?: number;
+//   message?: string;
+//   state?: {
+//     array: number[];
+//     currentIndex: number;
+//     minIndex: number;
+//     sortedIndices: number[];
+//     completed: boolean;
+//     initialArray: number[];
+//   };
+//   stepNumber?: number;
+//   error?: string;
+// }
 
 interface SortStep {
   message: string;
@@ -62,10 +62,10 @@ interface SelectionSortVizProps {
 }
 
 const SelectionSortViz: React.FC<SelectionSortVizProps> = ({ array, speed }) => {
-  if (!array || !Array.isArray(array)) {
-    console.error('Invalid array prop:', array);
-    return <div>Error: Invalid array prop</div>;
-  }
+  // if (!array || !Array.isArray(array)) {
+  //   console.error('Invalid array prop:', array);
+  //   return <div>Error: Invalid array prop</div>;
+  // }
 
   const svgRef = useRef<SVGSVGElement | null>(null);
   const [state, setState] = useState<SortState>({
@@ -93,7 +93,7 @@ const SelectionSortViz: React.FC<SelectionSortVizProps> = ({ array, speed }) => 
   const [totalSteps, setTotalSteps] = useState(0);
 
 
-
+  
   const width = 1450;
   const height = 450;
   const margin = {
@@ -151,7 +151,7 @@ const SelectionSortViz: React.FC<SelectionSortVizProps> = ({ array, speed }) => 
             [arr[i], arr[i+1]] = [arr[i+1], arr[i]];
             swapped = true;
   while(swapped);`,
-      async *sort(arr) {
+      async *sort(arr: number[]) {
         const n = arr.length;
         let swapped;
         do {
@@ -208,8 +208,7 @@ const SelectionSortViz: React.FC<SelectionSortVizProps> = ({ array, speed }) => 
         };
   
         return arr;
-      }
-    },
+      }    },
     "Quick Sort": {
       name: "Quick Sort",
       timeComplexity: "O(n log n)",
@@ -223,7 +222,7 @@ const SelectionSortViz: React.FC<SelectionSortVizProps> = ({ array, speed }) => 
     }
     return arr;
   }`,
-      async *sort(arr) {
+      async *sort(arr: number[]) {
         const n = arr.length;
         let swapped;
         do {
@@ -281,179 +280,179 @@ const SelectionSortViz: React.FC<SelectionSortVizProps> = ({ array, speed }) => 
     }
   }
   // Mock API response function
-  const mockApiResponse = async (endpoint: string, method: string = 'GET', body?: any): Promise<MockApiResponse> => {
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 50));
+  // const mockApiResponse = async (endpoint: string, method: string = 'GET', body?: any): Promise<MockApiResponse> => {
+  //   // Simulate network delay
+  //   await new Promise(resolve => setTimeout(resolve, 50));
 
-    if (endpoint.includes('/init')) {
-      return {
-        originalArray: array,
-        sortedArray: [...array].sort((a, b) => a - b),
-        totalSteps: array.length * (array.length + 1) / 2,
-        message: "Initialized selection sort",
-        state: {
-          array: array,
-          currentIndex: 0,
-          minIndex: 0,
-          sortedIndices: [],
-          completed: false, // Use `completed` instead of `isCompleted`
-          initialArray: array
-        }
-      };
-    }
+  //   if (endpoint.includes('/init')) {
+  //     return {
+  //       originalArray: array,
+  //       sortedArray: [...array].sort((a, b) => a - b),
+  //       totalSteps: array.length * (array.length + 1) / 2,
+  //       message: "Initialized selection sort",
+  //       state: {
+  //         array: array,
+  //         currentIndex: 0,
+  //         minIndex: 0,
+  //         sortedIndices: [],
+  //         completed: false, // Use `completed` instead of `isCompleted`
+  //         initialArray: array
+  //       }
+  //     };
+  //   }
 
-    if (endpoint.includes('/step') && method === 'POST') {
-      // Handle step update
-      const { array: requestArray, currentIndex, reset } = body;
+  //   if (endpoint.includes('/step') && method === 'POST') {
+  //     // Handle step update
+  //     const { array: requestArray, currentIndex, reset } = body;
     
-      if (reset) {
-        return {
-          state: {
-            array: [...requestArray],
-            currentIndex: 0,
-            minIndex: 0,
-            sortedIndices: [],
-            completed: false,
-            initialArray: requestArray, // Add initialArray for consistency
-          },
-        };
-      }
+  //     if (reset) {
+  //       return {
+  //         state: {
+  //           array: [...requestArray],
+  //           currentIndex: 0,
+  //           minIndex: 0,
+  //           sortedIndices: [],
+  //           completed: false,
+  //           initialArray: requestArray, // Add initialArray for consistency
+  //         },
+  //       };
+  //     }
     
-      // Perform one step of selection sort
-      const newArray = [...requestArray];
-      let minIndex = currentIndex;
+  //     // Perform one step of selection sort
+  //     const newArray = [...requestArray];
+  //     let minIndex = currentIndex;
     
-      for (let i = currentIndex + 1; i < newArray.length; i++) {
-        if (newArray[i] < newArray[minIndex]) {
-          minIndex = i;
-        }
-      }
+  //     for (let i = currentIndex + 1; i < newArray.length; i++) {
+  //       if (newArray[i] < newArray[minIndex]) {
+  //         minIndex = i;
+  //       }
+  //     }
     
-      // Swap if needed
-      if (minIndex !== currentIndex) {
-        [newArray[currentIndex], newArray[minIndex]] = [newArray[minIndex], newArray[currentIndex]];
-      }
+  //     // Swap if needed
+  //     if (minIndex !== currentIndex) {
+  //       [newArray[currentIndex], newArray[minIndex]] = [newArray[minIndex], newArray[currentIndex]];
+  //     }
     
-      const newSortedIndices = [...Array(currentIndex + 1).keys()];
-      const completed = currentIndex >= newArray.length - 1;
+  //     const newSortedIndices = [...Array(currentIndex + 1).keys()];
+  //     const completed = currentIndex >= newArray.length - 1;
     
-      return {
-        state: {
-          array: newArray,
-          currentIndex: currentIndex + 1,
-          minIndex: minIndex,
-          sortedIndices: newSortedIndices,
-          completed,
-          initialArray: requestArray, // Add initialArray for consistency
-        },
-      };
-    }
+  //     return {
+  //       state: {
+  //         array: newArray,
+  //         currentIndex: currentIndex + 1,
+  //         minIndex: minIndex,
+  //         sortedIndices: newSortedIndices,
+  //         completed,
+  //         initialArray: requestArray, // Add initialArray for consistency
+  //       },
+  //     };
+  //   }
 
-    if (endpoint.includes('/step/') && method === 'GET') {
-      // Extract step number from endpoint
-      const stepNumber = parseInt(endpoint.split('/').pop() || "0");
+  //   if (endpoint.includes('/step/') && method === 'GET') {
+  //     // Extract step number from endpoint
+  //     const stepNumber = parseInt(endpoint.split('/').pop() || "0");
 
-      // Calculate the state for the specific step
-      const initialArr = [...array];
-      const stepState = simulateSelectionSortStep(initialArr, stepNumber);
+  //     // Calculate the state for the specific step
+  //     const initialArr = [...array];
+  //     const stepState = simulateSelectionSortStep(initialArr, stepNumber);
 
-      return {
-        message: `Step ${stepNumber}`,
-        state: stepState,
-        stepNumber
-      };
-    }
+  //     return {
+  //       message: `Step ${stepNumber}`,
+  //       state: stepState,
+  //       stepNumber
+  //     };
+  //   }
 
-    // Default response
-    return { error: "Invalid endpoint" };
-  };
+  //   // Default response
+  //   return { error: "Invalid endpoint" };
+  // };
 
   // Helper function to simulate selection sort steps
-  const simulateSelectionSortStep = (initialArray: number[], stepNumber: number) => {
-    const arr: number[] = [...initialArray];
-    let currentIdx = 0;
-    let minIdx = 0;
-    let sortedIndices: number[] = [];
-    let completed = false;
+  // const simulateSelectionSortStep = (initialArray: number[], stepNumber: number) => {
+  //   const arr: number[] = [...initialArray];
+  //   // let currentIdx = 0;
+  //   let minIdx = 0;
+  //   let sortedIndices: number[] = [];
+  //   // let completed = false;
 
-    // Special case for step 0
-    if (stepNumber === 0) {
-      return {
-        array: arr,
-        currentIndex: 0,
-        minIndex: 0,
-        sortedIndices: [],
-        completed: false, // Use `completed` instead of `isCompleted`
-        initialArray: arr
-      };
-    }
+  //   // Special case for step 0
+  //   if (stepNumber === 0) {
+  //     return {
+  //       array: arr,
+  //       currentIndex: 0,
+  //       minIndex: 0,
+  //       sortedIndices: [],
+  //       completed: false, // Use `completed` instead of `isCompleted`
+  //       initialArray: arr
+  //     };
+  //   }
 
-    // Determine the current state based on the step number
-    let step = 0;
+  //   // Determine the current state based on the step number
+  //   let step = 0;
 
-    for (let i = 0; i < arr.length - 1 && step < stepNumber; i++) {
-      currentIdx = i;
-      minIdx = i;
+  //   for (let i = 0; i < arr.length - 1 && step < stepNumber; i++) {
+  //     // currentIdx = i;
+  //     minIdx = i;
 
-      for (let j = i + 1; j < arr.length && step < stepNumber; j++) {
-        step++;
+  //     for (let j = i + 1; j < arr.length && step < stepNumber; j++) {
+  //       step++;
 
-        if (step === stepNumber) {
-          // This is the step we want to return
-          // We're comparing elements at indices i and j
-          if (arr[j] < arr[minIdx]) {
-            minIdx = j;
-          }
+  //       if (step === stepNumber) {
+  //         // This is the step we want to return
+  //         // We're comparing elements at indices i and j
+  //         if (arr[j] < arr[minIdx]) {
+  //           minIdx = j;
+  //         }
 
-          sortedIndices = Array.from({ length: i }, (_, idx) => idx);
-          return {
-            array: arr,
-            currentIndex: i,
-            minIndex: minIdx,
-            sortedIndices,
-            completed: false, // Use `completed` instead of `isCompleted`
-            initialArray: initialArray
-          };
-        }
+  //         sortedIndices = Array.from({ length: i }, (_, idx) => idx);
+  //         return {
+  //           array: arr,
+  //           currentIndex: i,
+  //           minIndex: minIdx,
+  //           sortedIndices,
+  //           completed: false, // Use `completed` instead of `isCompleted`
+  //           initialArray: initialArray
+  //         };
+  //       }
 
-        if (arr[j] < arr[minIdx]) {
-          minIdx = j;
-        }
-      }
+  //       if (arr[j] < arr[minIdx]) {
+  //         minIdx = j;
+  //       }
+  //     }
 
-      // After inner loop completes, perform the swap
-      step++;
-      if (step === stepNumber) {
-        // This is the swap step
-        sortedIndices = Array.from({ length: i }, (_, idx) => idx);
-        return {
-          array: arr,
-          currentIndex: i,
-          minIndex: minIdx,
-          sortedIndices,
-          completed: i === arr.length - 2, // Use `completed` instead of `isCompleted`
-          initialArray: initialArray
-        };
-      }
+  //     // After inner loop completes, perform the swap
+  //     step++;
+  //     if (step === stepNumber) {
+  //       // This is the swap step
+  //       sortedIndices = Array.from({ length: i }, (_, idx) => idx);
+  //       return {
+  //         array: arr,
+  //         currentIndex: i,
+  //         minIndex: minIdx,
+  //         sortedIndices,
+  //         completed: i === arr.length - 2, // Use `completed` instead of `isCompleted`
+  //         initialArray: initialArray
+  //       };
+  //     }
 
-      // Perform the swap
-      if (i !== minIdx) {
-        [arr[i], arr[minIdx]] = [arr[minIdx], arr[i]];
-      }
+  //     // Perform the swap
+  //     if (i !== minIdx) {
+  //       [arr[i], arr[minIdx]] = [arr[minIdx], arr[i]];
+  //     }
 
-      sortedIndices = Array.from({ length: i + 1 }, (_, idx) => idx);
-    }
+  //     sortedIndices = Array.from({ length: i + 1 }, (_, idx) => idx);
+  //   }
 
-    // If we get here, we're at the end of the sorting
-    return {
-      array: arr,
-      currentIndex: arr.length - 1,
-      minIndex: arr.length - 1,
-      sortedIndices: Array.from({ length: arr.length }, (_, idx) => idx),
-      completed: true, // Use `completed` instead of `isCompleted`
-      initialArray: initialArray
-    };
-  };
+  //   // If we get here, we're at the end of the sorting
+  //   return {
+  //     array: arr,
+  //     currentIndex: arr.length - 1,
+  //     minIndex: arr.length - 1,
+  //     sortedIndices: Array.from({ length: arr.length }, (_, idx) => idx),
+  //     completed: true, // Use `completed` instead of `isCompleted`
+  //     initialArray: initialArray
+  //   };
+  // };
 
   const handlePlay = async () => {
     if (currentStep === 0) {
@@ -469,57 +468,43 @@ const SelectionSortViz: React.FC<SelectionSortVizProps> = ({ array, speed }) => 
   };
 
   const handleSeek = async (step: number) => {
-    try {
-      const response = await mockApiResponse(`/api/sort/selection/step/${step}`);
-
-      // Ensure the response has the expected structure
-      if (response && response.state) {
-        const newState: SortState = response.state;
-        setState(newState);
-        setCountStep(step);
-        setCurrentStep(step);
-        setIsPlaying(false);
-      } else {
-        console.error('Invalid response from mock API:', response);
-      }
-    } catch (error) {
-      console.error('Error seeking to step:', error);
-    }
+    const response = await fetch(`http://localhost:8080/api/sort/selection/step/${step}`);
+    // console.log(step);
+    const stepData = await response.json();
+    setState(stepData.state);
+    setCountStep(step);
+    setCurrentStep(step);
+  
+    setIsPlaying(false);
   };
 
   useEffect(() => {
     const initializeNewArray = async () => {
       try {
-        // Call the mock API to initialize the array
-        const response = await mockApiResponse('/api/sort/selection/init', 'POST', { array });
-
-        // Ensure the response has the expected structure
-        if (
-          response &&
-          Array.isArray(response.originalArray) &&
-          typeof response.totalSteps === 'number'
-        ) {
-          // Update the state with the response data
-          setState((prev) => ({
-            ...prev,
-            array: response.originalArray,
-            initialArray: response.originalArray,
-            currentIndex: 0,
-            minIndex: 0,
-            sortedIndices: [],
-            completed: false, // Use `completed` instead of `isCompleted`
-          }));
-
-          // Update total steps
-          setTotalSteps(response.totalSteps);
-
-          // Reset comparing and swapping states
-          setComparingIndex(null);
-          setSwappingPairs(null);
-        } else {
-          // Handle invalid response
-          console.error('Invalid response from mock API:', response);
-        }
+        const response = await fetch('http://localhost:8080/api/sort/selection/init', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+              array: array
+          })
+        });
+  
+        const newState: SortingResult = await response.json();
+        setState(prev => ({
+          ...prev,
+          array: newState.originalArray,
+          initialArray: newState.originalArray,
+          currentIndex: 0,
+          minIndex: 0,
+          sortedIndices: [],
+          isCompleted: false,
+  
+        }));
+        setTotalSteps(newState.totalSteps);
+        setComparingIndex(null);
+        setSwappingPairs(null);
       } catch (error) {
         // Handle any errors during initialization
         console.error('Error initializing new array:', error);
@@ -787,28 +772,40 @@ const SelectionSortViz: React.FC<SelectionSortVizProps> = ({ array, speed }) => 
     new Promise(resolve => setTimeout(resolve, ms));
 
   useEffect(() => {
+  
     const runAnimation = async () => {
       if (isPlaying && !state.completed && !isAnimating) {
         await PlaySteps();
+        
+        // Matches your sleep duration
       }
     };
-
+  
     if (isPlaying) {
       runAnimation();
     }
-
-    if (currentStep === totalSteps - 1 && isPlaying) {
+  
+      
+    if(currentStep == totalSteps - 1 && isPlaying){
       setCurrentStep(0);
+      // resetSort();
       handlePause();
     }
-  }, [isPlaying, countStep, state.completed, isAnimating, currentStep, totalSteps]);
+  
+  }, [isPlaying, countStep , state.completed, isAnimating , currentStep]);
 
   const PlaySteps = async (): Promise<void> => {
     if (!isAnimating) {
       setIsAnimating(true);
       try {
-        const response = await mockApiResponse(`/api/sort/selection/step/${countStep}`);
-        const stepData = response;
+        const response = await fetch(`http://localhost:8080/api/sort/selection/step/${countStep}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+  
+        const stepData = await response.json();
 
         const comparisons = [];
         for (let i = 0; i < arrayLength - 1; i++) {
@@ -842,13 +839,14 @@ const SelectionSortViz: React.FC<SelectionSortVizProps> = ({ array, speed }) => 
         }
 
         setState((prev: SortState) => ({
-          array: prev.array, // Ensure this is always defined
-          initialArray: prev.initialArray, // Ensure this is always defined
-          currentIndex: 0,
-          minIndex: 0,
-          sortedIndices: [],
-          completed: false,
-        }));
+          ...prev,
+          array: stepData.state.array,
+          currentIndex: stepData.state.currentIndex,
+          minIndex: stepData.state.minIndex,
+          sortedIndices: stepData.state.sortedIndices,
+          completed: stepData.state.completed,
+          initialArray: stepData.state.initialArray
+        }));  
 
         if (comparisons[countStep] !== 0) {
           setComparingIndex(comparisons[countStep]);
@@ -898,36 +896,35 @@ const SelectionSortViz: React.FC<SelectionSortVizProps> = ({ array, speed }) => 
   
       setComparingIndex(null);
   
-      const response = await mockApiResponse('/api/sort/selection/step', 'POST', {
-        array: state.array,
-        currentIndex: state.currentIndex,
-        reset: false
+      const response = await fetch('http://localhost:8080/api/sort/selection/step', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          array: state.array,
+          currentIndex: state.currentIndex,
+          reset: false
+        })
       });
+
+      const newState: SortState = await response.json();
   
-      // Ensure `response.state` is defined before using it
-      if (response.state) {
-        const newState: SortState = response.state; // Use the nested `state` property
-        console.log('New State:', newState);
-  
-        if (state.array[state.currentIndex] !== state.array[newState.minIndex]) {
-          setSwappingPairs({
-            from: state.currentIndex,
-            to: newState.minIndex
-          });
-          await sleep(800 / speed);
-          setSwappingPairs(null);
-        }
-  
-        setCurrentStep(prev => prev + 1);
-  
-        setState(prev => ({
-          ...newState,
-          minIndex: newState.currentIndex,
-          initialArray: [...prev.initialArray],
-        }));
-      } else {
-        console.error('Invalid response: `state` is undefined');
+      if (state.array[state.currentIndex] !== state.array[newState.minIndex]) {
+        setSwappingPairs({
+          from: state.currentIndex,
+          to: newState.minIndex
+        });
+        await sleep(800 / speed); // Longer pause during swap
+        setSwappingPairs(null);
       }
+      setCurrentStep(prev => prev + 1);
+      
+      setState(prev => ({
+        ...newState,
+        minIndex: newState.currentIndex,
+        initialArray: [...prev.initialArray], // Use the initialArray to reset
+      }));
     } catch (error) {
       console.error('Error during sorting step:', error);
     } finally {
@@ -940,8 +937,15 @@ const SelectionSortViz: React.FC<SelectionSortVizProps> = ({ array, speed }) => 
     setIsAnimating(true);
 
     try {
-      const response = await mockApiResponse(`/api/sort/selection/step/${countStep - 1}`);
-      const newState: SortStep = response;
+      const response = await fetch(`http://localhost:8080/api/sort/selection/step/${countStep-1}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        
+      });
+  
+      const newState: SortStep = await response.json();
 
       if (newState && state.array[state.currentIndex - 1] !== state.array[state.minIndex]) {
         setSwappingPairs({
@@ -954,6 +958,7 @@ const SelectionSortViz: React.FC<SelectionSortVizProps> = ({ array, speed }) => 
 
       if (newState) {
         setState(prev => ({
+          ...prev,
           array: newState.state.array,
           currentIndex: newState.state.currentIndex,
           minIndex: newState.state.currentIndex,
@@ -978,13 +983,19 @@ const SelectionSortViz: React.FC<SelectionSortVizProps> = ({ array, speed }) => 
     setIsPlaying(false);
 
     try {
-      const response = await mockApiResponse('/api/sort/selection/step', 'POST', {
-        array: state.initialArray,
-        currentIndex: 0,
-        reset: true
+      const response = await fetch('http://localhost:8080/api/sort/selection/step', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          array: state.initialArray,
+          currentIndex: 0,
+          reset: true
+        })
       });
 
-      const newState: SortState = response;
+      const newState: SortState = await response.json();
 
       setState(prev => ({
         ...newState,

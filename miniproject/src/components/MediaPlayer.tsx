@@ -10,7 +10,17 @@ interface MediaPlayerProps {
   onSeek: (step: number) => void;
   nextStep: () => void;
   isAnimating: boolean;
-  state: any;
+  state: SortState;
+}
+
+
+interface SortState {
+  array: number[];
+  currentIndex: number;
+  minIndex: number;
+  sortedIndices: number[];
+  completed: boolean; // Use `completed` instead of `isCompleted`
+  initialArray: number[];
 }
 
 const MediaPlayer: React.FC<MediaPlayerProps> = ({
@@ -49,7 +59,7 @@ const MediaPlayer: React.FC<MediaPlayerProps> = ({
 
         <button
     onClick={nextStep}
-    disabled={isAnimating || state.isCompleted || state.sortedIndices.length >= state.array.length || isPlaying}
+    disabled={isAnimating || state.completed || state.sortedIndices.length >= state.array.length || isPlaying}
     className="px-3 py-3 bg-gradient-to-r from-blue-500 to-blue-600 
                text-white rounded-full shadow-md hover:from-blue-600 
                hover:to-blue-700 disabled:opacity-50 

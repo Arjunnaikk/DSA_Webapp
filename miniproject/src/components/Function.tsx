@@ -34,7 +34,7 @@ const Functions = () => {
     setShowVisualization(true);
   };
 
-  let arraySizeCheck = parseInt(arraySize) <= 100 && parseInt(arraySize) > 0;
+  const arraySizeCheck = parseInt(arraySize) <= 100 && parseInt(arraySize) > 0;
 
   const toggleSortOrder = () => {
     setShouldSort(true);
