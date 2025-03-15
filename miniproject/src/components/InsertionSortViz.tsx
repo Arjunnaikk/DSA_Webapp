@@ -4,7 +4,7 @@ import * as d3 from 'd3';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Pause, Play, RotateCcw, SkipForward } from 'lucide-react';
 
-const InsertionSortVisualization = () => {
+const InsertionSortViz = () => {
   const d3Container = useRef(null);
   const [sortSteps, setSortSteps] = useState([]);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
@@ -339,7 +339,7 @@ const InsertionSortVisualization = () => {
         ></div>
       ) : (
         <div className="w-full h-[400px] border border-gray-200 rounded-lg bg-gray-50 flex items-center justify-center">
-          <p className="text-gray-500">Click "Sort" to visualize insertion sort</p>
+          <p className="text-gray-500">Click Sort to visualize insertion sort</p>
         </div>
       )}
       
@@ -369,4 +369,4 @@ const InsertionSortVisualization = () => {
   );
 };
 
-export default InsertionSortVisualization;
+export default InsertionSortViz;

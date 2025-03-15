@@ -21,6 +21,7 @@ public class SortingService {
         state.setSortedIndices(new ArrayList<>());
         state.setCompleted(false);
         state.setInitialArray(null);
+        state.setCurrentLine(0);
         return state;
     }
 
@@ -72,7 +73,8 @@ public class SortingService {
                     minIdx,
                     new ArrayList<>(sortedIndices),
                     false,
-                    Arrays.stream(initialArray).boxed().collect(Collectors.toList())
+                    Arrays.stream(initialArray).boxed().collect(Collectors.toList()),
+                    2
                 ));
                 if (arr[j] < arr[minIdx]) {
                     minIdx = j;
@@ -88,7 +90,8 @@ public class SortingService {
                 minIdx,
                 new ArrayList<>(sortedIndices),
                 false, // isCompleted will be true on the last iteration
-                Arrays.stream(initialArray).boxed().collect(Collectors.toList())
+                Arrays.stream(initialArray).boxed().collect(Collectors.toList()),
+                3
             ));
             // Swap found minimum element with first element
             int temp = arr[minIdx];
@@ -107,7 +110,8 @@ public class SortingService {
             n - 1,
             new ArrayList<>(sortedIndices),
             false, // isCompleted will be true on the last iteration
-            Arrays.stream(initialArray).boxed().collect(Collectors.toList())
+            Arrays.stream(initialArray).boxed().collect(Collectors.toList()),
+            4
         ));
         
         // Add final state with all indices sorted
@@ -118,7 +122,8 @@ public class SortingService {
             n - 1,
             sortedIndices,
             true,
-            Arrays.stream(initialArray).boxed().collect(Collectors.toList())
+            Arrays.stream(initialArray).boxed().collect(Collectors.toList()),
+            5
         ));
     }
     

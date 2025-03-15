@@ -17,6 +17,7 @@ interface SortState {
   sortedIndices: number[];
   completed: boolean; // Use `completed` instead of `isCompleted`
   initialArray: number[];
+  currentLine: number;
 }
 
 interface SortingResult {
@@ -52,6 +53,7 @@ interface SortStep {
     sortedIndices: number[];
     initialArray: number[];
     completed: boolean; // Use `completed` instead of `isCompleted`
+    
   };
   stepNumber: number;
 }
@@ -78,6 +80,7 @@ const SelectionSortViz: React.FC<SelectionSortVizProps> = ({
     sortedIndices: [],
     completed: false,
     initialArray: array,
+    currentLine: 0,
   });
 
   const arrayLength = state.array.length; // Safe to access now
@@ -92,7 +95,7 @@ const SelectionSortViz: React.FC<SelectionSortVizProps> = ({
   const [showCode, setShowCode] = useState(false);
   const [showRuntimeCode, setShowRuntimeCode] = useState(true);
   const [currentAlgo, setCurrentAlgo] = useState("Selection Sort");
-  const [currentLine, setCurrentLine] = useState<number | null>(null);
+  // const [currentLine, setCurrentLine] = useState<number | null>(null);
   const [countStep, setCountStep] = useState<number>(0);
   const [currentStep, setCurrentStep] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -115,145 +118,139 @@ const SelectionSortViz: React.FC<SelectionSortVizProps> = ({
 
   const centerX = width / 2;
   const buttonY = height - margin.bottom + 70;
-  const algorithms = {
-    "Selection Sort": {
-      name: "Selection Sort",
-      timeComplexity: "O(n²)",
-      spaceComplexity: "O(1)",
-      description:
-        "A simple comparison-based sorting algorithm that divides the array into sorted and unsorted regions",
-      explaination: `Selection sort works like choosing the smallest card from a hand of playing cards. Here's how it works:
-Start with your entire list as unsorted
-Find the smallest element in the unsorted region
-Swap it with the first element of the unsorted region
-Move the boundary between sorted and unsorted regions one element to the right
-Repeat until the entire array is sorted
+//   const algorithms = {
+//     "Selection Sort": {
+//       name: "Selection Sort",
+//       timeComplexity: "O(n²)",
+//       spaceComplexity: "O(1)",
+//       description:
+//         "A simple comparison-based sorting algorithm that divides the array into sorted and unsorted regions",
+//       explaination: `Selection sort works like choosing the smallest card from a hand of playing cards. Here's how it works:
+// Start with your entire list as unsorted
+// Find the smallest element in the unsorted region
+// Swap it with the first element of the unsorted region
+// Move the boundary between sorted and unsorted regions one element to the right
+// Repeat until the entire array is sorted
 
-Let's see a simple example with numbers [5, 2, 8, 1]:
-First pass:
-Find smallest element (1) at index 3
-Swap with first element: [5, 2, 8, 1] → [1, 2, 8, 5]
-Sorted region: [1], Unsorted region: [2, 8, 5]
+// Let's see a simple example with numbers [5, 2, 8, 1]:
+// First pass:
+// Find smallest element (1) at index 3
+// Swap with first element: [5, 2, 8, 1] → [1, 2, 8, 5]
+// Sorted region: [1], Unsorted region: [2, 8, 5]
 
-Second pass:
-Find smallest element (2) at index 1
-It's already at the correct position, no swap needed
-Sorted region: [1, 2], Unsorted region: [8, 5]
+// Second pass:
+// Find smallest element (2) at index 1
+// It's already at the correct position, no swap needed
+// Sorted region: [1, 2], Unsorted region: [8, 5]
 
-Third pass:
-Find smallest element (5) at index 3
-Swap with first unsorted element: [1, 2, 8, 5] → [1, 2, 5, 8]
-Sorted region: [1, 2, 5], Unsorted region: [8]
+// Third pass:
+// Find smallest element (5) at index 3
+// Swap with first unsorted element: [1, 2, 8, 5] → [1, 2, 5, 8]
+// Sorted region: [1, 2, 5], Unsorted region: [8]
 
-Fourth pass:
-Only one element left in unsorted region, it's automatically in the right place
-Sorted region: [1, 2, 5, 8], Unsorted region: []
+// Fourth pass:
+// Only one element left in unsorted region, it's automatically in the right place
+// Sorted region: [1, 2, 5, 8], Unsorted region: []
 
-Final result: [1, 2, 5, 8]
-Selection sort is named because it repeatedly "selects" the smallest element from the unsorted portion of the list. While it's not the most efficient algorithm with its O(n²) time complexity, it makes fewer swaps than bubble sort, making it more efficient in situations where swapping elements is expensive.`,
-      implementation: `minIndex = 0;
-for (let i = 0; i<n ; i++)
-    for (let j = i ; j < n ; j++)
-        if (arr[j] > arr[j+1])
-            minIndex = j+1;
-    swap(arr[j] , arr[j+1]);`,
-      async *sort(arr: number[]) {
-        const n = arr.length;
-        let var1 , var2 , min , current = 0;
-        const explainLines = [`Set minimum index to 0`, `is ${var1} > ${var2}`, `minimum index = ${var2}`, `swaping ${min} with ${current}`];
-        for (let i = 0; i < n - 1; i++) {
-          let minIndex = i;
+// Final result: [1, 2, 5, 8]
+// Selection sort is named because it repeatedly "selects" the smallest element from the unsorted portion of the list. While it's not the most efficient algorithm with its O(n²) time complexity, it makes fewer swaps than bubble sort, making it more efficient in situations where swapping elements is expensive.`,
+//       implementation: `minIndex = 0;
+// for (let i = 0; i<n ; i++)
+//     for (let j = i ; j < n ; j++)
+//         if (arr[j] > arr[j+1])
+//             minIndex = j+1;
+//     swap(arr[j] , arr[j+1]);`,
+//       async *sort(arr: number[]) {
+//         const n = arr.length;
+//         let var1 , var2 , min , current = 0;
+//         // const explainLines = [`Set minimum index to 0`, `is ${var1} > ${var2}`, `minimum index = ${var2}`, `swaping ${min} with ${current}`];
+//         for (let i = 0; i < n - 1; i++) {
+//           let minIndex = i;
+//           yield {
+//             array: [...arr],
+//             comparing: null,
+//             swapped: null,
+//             explanation: `Starting pass ${
+//               i + 1
+//             }: Finding minimum element in unsorted portion (index ${i} to ${
+//               n - 1
+//             })`,
+//             currentLine: 1,
+//           };
+//           // Find the minimum element in the unsorted portion
+//           for (let j = i + 1; j < n; j++) {
+//             yield {
+//               array: [...arr],
+//               comparing: [j, minIndex],
+//               swapped: null,
+//               explanation: `Comparing elements at index ${j} (${arr[j]}) and current minimum at index ${minIndex} (${arr[minIndex]})`,
+//               currentLine: 4,
+//             };
+//             if (arr[j] < arr[minIndex]) {
+//               yield {
+//                 array: [...arr],
+//                 comparing: [j, minIndex],
+//                 swapped: null,
+//                 explanation: `Found new minimum ${arr[j]} at index ${j}`,
+//                 currentLine: 5,
+//               };
 
-          
+//               minIndex = j;
+//             }
+//             await new Promise((resolve) => setTimeout(resolve, 50));
+//           }
 
+//           // Swap the found minimum element with the first element
+//           if (minIndex !== i) {
+//             yield {
+//               array: [...arr],
+//               comparing: null,
+//               swapped: null,
+//               explanation: `Preparing to swap elements at index ${i} (${arr[i]}) and index ${minIndex} (${arr[minIndex]})`,
+//               currentLine: 10,
+//             };
 
-          yield {
-            array: [...arr],
-            comparing: null,
-            swapped: null,
-            explanation: `Starting pass ${
-              i + 1
-            }: Finding minimum element in unsorted portion (index ${i} to ${
-              n - 1
-            })`,
-            currentLine: 1,
-          };
+//             // First yield for the swap operation
+//             yield {
+//               array: [...arr],
+//               comparing: null,
+//               swapped: [i, minIndex],
+//               explanation: `Swapping elements ${arr[i]} and ${arr[minIndex]}`,
+//               currentLine: 11,
+//             };
 
-          // Find the minimum element in the unsorted portion
-          for (let j = i + 1; j < n; j++) {
-            yield {
-              array: [...arr],
-              comparing: [j, minIndex],
-              swapped: null,
-              explanation: `Comparing elements at index ${j} (${arr[j]}) and current minimum at index ${minIndex} (${arr[minIndex]})`,
-              currentLine: 4,
-            };
+//             [arr[i], arr[minIndex]] = [arr[minIndex], arr[i]];
 
-            if (arr[j] < arr[minIndex]) {
-              yield {
-                array: [...arr],
-                comparing: [j, minIndex],
-                swapped: null,
-                explanation: `Found new minimum ${arr[j]} at index ${j}`,
-                currentLine: 5,
-              };
+//             // Second yield after the swap is complete
+//             yield {
+//               array: [...arr],
+//               comparing: null,
+//               swapped: [i, minIndex],
+//               explanation: `Swap complete. Element ${arr[i]} is now in sorted position at index ${i}`,
+//               currentLine: 11,
+//             };
+//           } else {
+//             yield {
+//               array: [...arr],
+//               comparing: null,
+//               swapped: null,
+//               explanation: `No swap needed. Element ${arr[i]} is already in the correct position at index ${i}`,
+//               currentLine: 10,
+//             };
+//           }
+//         }
 
-              minIndex = j;
-            }
-            await new Promise((resolve) => setTimeout(resolve, 50));
-          }
+//         yield {
+//           array: [...arr],
+//           comparing: null,
+//           swapped: null,
+//           explanation: `Sorting complete`,
+//           currentLine: 14,
+//         };
 
-          // Swap the found minimum element with the first element
-          if (minIndex !== i) {
-            yield {
-              array: [...arr],
-              comparing: null,
-              swapped: null,
-              explanation: `Preparing to swap elements at index ${i} (${arr[i]}) and index ${minIndex} (${arr[minIndex]})`,
-              currentLine: 10,
-            };
-
-            // First yield for the swap operation
-            yield {
-              array: [...arr],
-              comparing: null,
-              swapped: [i, minIndex],
-              explanation: `Swapping elements ${arr[i]} and ${arr[minIndex]}`,
-              currentLine: 11,
-            };
-
-            [arr[i], arr[minIndex]] = [arr[minIndex], arr[i]];
-
-            // Second yield after the swap is complete
-            yield {
-              array: [...arr],
-              comparing: null,
-              swapped: [i, minIndex],
-              explanation: `Swap complete. Element ${arr[i]} is now in sorted position at index ${i}`,
-              currentLine: 11,
-            };
-          } else {
-            yield {
-              array: [...arr],
-              comparing: null,
-              swapped: null,
-              explanation: `No swap needed. Element ${arr[i]} is already in the correct position at index ${i}`,
-              currentLine: 10,
-            };
-          }
-        }
-
-        yield {
-          array: [...arr],
-          comparing: null,
-          swapped: null,
-          explanation: `Sorting complete`,
-          currentLine: 14,
-        };
-
-        return arr;
-      },
-    },
+//         return arr;
+//       },
+//     },
     //   "Quick Sort": {
     //     name: "Quick Sort",
     //     timeComplexity: "O(n log n)",
@@ -323,7 +320,7 @@ for (let i = 0; i<n ; i++)
     //       return arr;
     //     },
     //   },
-  };
+  // };
   // Mock API response function
   // const mockApiResponse = async (endpoint: string, method: string = 'GET', body?: any): Promise<MockApiResponse> => {
   //   // Simulate network delay
@@ -936,6 +933,7 @@ for (let i = 0; i<n ; i++)
           sortedIndices: stepData.state.sortedIndices,
           completed: stepData.state.completed,
           initialArray: stepData.state.initialArray,
+          currentLine: stepData.state.currentLine,
         }));
 
         if (comparisons[countStep] !== 0) {
