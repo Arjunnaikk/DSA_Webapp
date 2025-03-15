@@ -129,7 +129,7 @@ const Functions = () => {
         {/* Sidebar */}
         <div
           className={`fixed left-0 top-[50px] h-[calc(100vh-50px)] bg-white transition-all duration-500 ease-in-out ${
-            isControlsOpen ? "w-72" : "w-16"
+            isControlsOpen ? "w-60" : "w-12"
           } border-r border-gray-200 shadow-lg`}
           onMouseEnter={() => setIsControlsOpen(true)}
           onMouseLeave={() => setIsControlsOpen(false)}
@@ -152,20 +152,20 @@ const Functions = () => {
             <div className={`p-6 flex flex-col gap-8 space-y-6 h-full ${isControlsOpen ? 'block' : 'hidden'}`}>
               {/* Array Size Section */}
               <div className="space-y-3">
-                <div className="flex items-center gap-2 text-indigo-950 font-semibold bg-indigo-200 p-2 rounded-lg">
+                <div className="flex items-center gap-2 text-indigo-850 text-base font-semibold bg-indigo-200 p-2 rounded-lg h-8 w-50">
                   <BarChart className="h-5 w-5" />
                   <span>Array Size</span>
                 </div>
-                <div className="space-y-1 px-2">
+                <div className="space-y-1 pl-3 h-8 w-50">
                   <Input
                     type="number"
                     placeholder="Array size"
                     value={arraySize}
                     onChange={(e) => {
                       setArraySize(e.target.value);
-                      generateRandomArray();
+                      // generateRandomArray();
                     }}
-                    className="w-full border-2 focus:ring-2 focus:ring-indigo-200"
+                    className="w-full border-2 focus:ring-2 focus:ring-indigo-200 h-8"
                   />
                   {!arraySizeCheck && (
                     <span className="text-red-400 text-sm">Allowed (1-100)</span>
@@ -175,15 +175,15 @@ const Functions = () => {
 
               {/* Array Controls Section */}
               <div className="space-y-3">
-                <div className="flex items-center gap-2 text-indigo-950 font-semibold bg-indigo-200 p-2 rounded-lg">
+                <div className="flex items-center gap-2 text-indigo-950 font-semibold bg-indigo-200 p-2 rounded-lg h-8 w-50 text-base">
                   <Settings className="h-5 w-5" />
                   <span>Array Controls</span>
                 </div>
-                <div className="grid grid-cols-1 gap-2 px-2">
+                <div className="grid grid-cols-1 gap-2 pl-3">
                   <Button
                     onClick={generateRandomArray}
                     variant="outline"
-                    className="w-full justify-start hover:bg-indigo-50 border-2"
+                    className="w-full justify-start hover:bg-indigo-50 border-2 h-8"
                   >
                     <RefreshCw className="h-4 w-4 mr-2" />
                     Random Array
@@ -191,7 +191,7 @@ const Functions = () => {
                   <Button
                     onClick={toggleSortOrder}
                     variant="outline"
-                    className="w-full justify-start hover:bg-indigo-50 border-2"
+                    className="w-full justify-start hover:bg-indigo-50 border-2 h-8"
                   >
                     <ArrowDownUp className="h-4 w-4 mr-2" />
                     {sortOrder.charAt(0).toUpperCase() + sortOrder.slice(1)}
@@ -199,7 +199,7 @@ const Functions = () => {
                   <Button
                     onClick={createRandomDuplicates}
                     variant="outline"
-                    className="w-full justify-start hover:bg-indigo-50 border-2"
+                    className="w-full justify-start hover:bg-indigo-50 border-2 h-8"
                   >
                     <Copy className="h-4 w-4 mr-2" />
                     Random Duplicates
@@ -209,7 +209,7 @@ const Functions = () => {
 
               {/* Speed Control Section */}
               <div className="space-y-3">
-                <div className="flex items-center gap-2 text-indigo-950 font-semibold bg-indigo-200 p-2 rounded-lg">
+                <div className="flex items-center gap-2 text-indigo-950 font-semibold bg-indigo-200 p-2 rounded-lg h-8 w-50 text-base">
                   <Timer className="h-5 w-5" />
                   <span>Animation Speed</span>
                 </div>
@@ -234,7 +234,7 @@ const Functions = () => {
         <div className="flex-1 ml-16">
           {/* Visualization */}
           {showVisualization && (
-            <div className="w-full h-[calc(100vh-130px)] flex justify-center items-center">
+            <div className="w-full flex justify-center items-center">
               {algorithm === 'selection' ? (
                 <SelectionSortViz 
                   key={currentArray.join(',')}
@@ -252,7 +252,7 @@ const Functions = () => {
           )}
 
           {/* Main Page Controls */}
-          <div className="fixed top-[70px] left-[30%] shadow w-[40vw] max-w-4xl mx-auto space-y-4 p-4 bg-white">
+          <div className=" space-y-8 left-[30%] w-[40vw] max-w-3xl mx-auto p-2 mt-20 ">
             <div className="flex items-center space-x-2">
               <Input
                 type="text"
@@ -274,7 +274,7 @@ const Functions = () => {
                 onClick={handleGoClick}
                 className="bg-blue-500 hover:bg-blue-600 text-white min-w-[60px]"
               >
-                <Pencil />
+                Go
               </Button>
             </div>
           </div>

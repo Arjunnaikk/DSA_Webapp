@@ -58,7 +58,7 @@ const SpeedControlSlider = ({
     <div className={`w-full max-w-xl mx-auto space-y-2`}>
       <div className="flex justify-between items-center">
         <span className="text-sm text-gray-500">0.5x</span>
-        <span className="text-base font-medium">{formatSpeed(speed)}</span>
+        <span className="text-sm font-medium">{formatSpeed(speed)}</span>
         <span className="text-sm text-gray-500">10x</span>
       </div>
       

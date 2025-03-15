@@ -43,7 +43,7 @@ const MediaPlayer: React.FC<MediaPlayerProps> = ({
       <div className="flex items-center space-x-4">
         <button
           onClick={isPlaying ? onPause : onPlay}
-          className="bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-full focus:outline-none "
+          className="px-2 py-1 h-10 w-10 bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-full focus:outline-none "
         >
           {isPlaying ? (
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -60,7 +60,7 @@ const MediaPlayer: React.FC<MediaPlayerProps> = ({
         <button
     onClick={nextStep}
     disabled={isAnimating || state.completed || state.sortedIndices.length >= state.array.length || isPlaying}
-    className="px-3 py-3 bg-gradient-to-r from-blue-500 to-blue-600 
+    className="px-2 py-1 h-10 w-10 bg-gradient-to-r from-blue-500 to-blue-600 
                text-white rounded-full shadow-md hover:from-blue-600 
                hover:to-blue-700 disabled:opacity-50 
                disabled:cursor-not-allowed"
