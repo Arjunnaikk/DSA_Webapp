@@ -9,7 +9,7 @@ public class SortService {
     private List<SortState> steps = new ArrayList<>();
     private int[] currentArray;
     private int stepCount = 0;
-
+    
     public SortResponse initSort(SortRequest request) {
         int[] array = request.getArray();
         currentArray = request.getArray().clone();
@@ -26,7 +26,7 @@ public class SortService {
             int j = i - 1;
             
             // Add initial step for current iteration
-            addStep(sortedArray.clone(), i, i, sortedIndices, false, array, "down");
+            addStep(sortedArray.clone(), i, i, sortedIndices, false, array, "down",1);
             
             while (j >= 0 && sortedArray[j] > key) {
                 // Add comparison step
@@ -38,25 +38,25 @@ public class SortService {
                 
                 
                 // Add shift step
-                addStep(sortedArray.clone(), j + 1, j, sortedIndices, false, array, "swap");
+                addStep(sortedArray.clone(), j + 1, j, sortedIndices, false, array, "swap",4);
                 
                 j--;
             }
 
             if( j != -1){
-                addStep(sortedArray.clone(), j + 1, j, sortedIndices, false, array, "");
+                addStep(sortedArray.clone(), j + 1, j, sortedIndices, false, array, "Hello",4);
             }
             
             sortedArray[j + 1] = key;
             sortedIndices.add(i);
             
             // Add step after insertion
-            addStep(sortedArray.clone(), j + 1, j + 1, sortedIndices, false, array, "up");
+            addStep(sortedArray.clone(), j + 1, j + 1, sortedIndices, false, array, "up",6);
         }
 
         // Add final sorted index and final step
         // sortedIndices.add(sortedArray.length - 1);
-        addStep(sortedArray.clone(), sortedArray.length - 1, sortedArray.length - 1, sortedIndices, true, array, "");
+        addStep(sortedArray.clone(), sortedArray.length - 1, sortedArray.length - 1, sortedIndices, true, array, "Done",0);
 
         // Create response
         SortResponse response = new SortResponse();
@@ -71,7 +71,7 @@ public class SortService {
     private void addStep(int[] sortedArray, int currentIndex, 
                         int comparingIndex, List<Integer> sortedIndices, 
                         boolean isCompleted, int[] initialArray, 
-                        String animation) {
+                        String animation, int currentLine) {
         SortState state = new SortState();
         state.setArray(sortedArray);
         state.setCurrentIndex(currentIndex);
@@ -80,6 +80,7 @@ public class SortService {
         state.setCompleted(isCompleted);
         state.setInitialArray(initialArray);
         state.setAnimation(animation);
+        state.setCurrentLine(currentLine);
         steps.add(state);
     }
 

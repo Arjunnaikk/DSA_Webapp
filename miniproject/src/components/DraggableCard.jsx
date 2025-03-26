@@ -2,11 +2,18 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Code, GripHorizontal } from 'lucide-react';
 
-const DraggableCard = ({ showCode, showRuntimeCode, algorithms, currentAlgo, currentLine }) => {
+const DraggableCard = ({ showCode, showRuntimeCode, currentAlgo, currentLine }) => {
   const [position, setPosition] = useState({ x: window.innerWidth - 450, y: 100 });
   const [isDragging, setIsDragging] = useState(false);
   const cardRef = useRef(null);
   const offset = useRef({ x: 0, y: 0 });
+
+  const linesInCurrentAlgo = currentAlgo.split('\n').length;
+  if (currentLine >= linesInCurrentAlgo) {
+    currentLine = linesInCurrentAlgo - 1;
+  }
+
+  // console.log("currentLine", currentLine,currentAlgo)
 
   useEffect(() => {
     const handleMouseMove = (e) => {
@@ -77,15 +84,19 @@ const DraggableCard = ({ showCode, showRuntimeCode, algorithms, currentAlgo, cur
             <div className="bg-gray-50 rounded-lg p-4 border-2 border-gray-200">
               <pre className="text-sm overflow-x-auto">
                 <code className="text-gray-700">
-                  {algorithms[currentAlgo].implementation
+                  {currentAlgo
                     .split('\n')
                     .map((line, index) => (
                       <div
                         key={index}
                         className={`${
-                          currentLine === index
-                            ? 'bg-yellow-100 border-l-4 border-yellow-500'
-                            : ''
+                          Array.isArray(currentLine)
+                            ? (currentLine[0] === index || currentLine[1] === index)
+                              ? 'bg-yellow-100 border-l-4 border-yellow-500'
+                              : ''
+                            : currentLine === index
+                              ? 'bg-yellow-100 border-l-4 border-yellow-500'
+                              : ''
                         } pl-2`}
                       >
                         {line}

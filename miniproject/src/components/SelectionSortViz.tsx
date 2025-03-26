@@ -86,7 +86,7 @@ const SelectionSortViz: React.FC<SelectionSortVizProps> = ({
   const arrayLength = state.array.length; // Safe to access now
 
   const [isAnimating, setIsAnimating] = useState<boolean>(false);
-  const [comparingIndex, setComparingIndex] = useState<number | null>(null);
+  const [comparingIndex, setComparingIndex] = useState<any | null>(null);
   const [swappingPairs, setSwappingPairs] = useState<{
     from: number;
     to: number;
@@ -94,13 +94,20 @@ const SelectionSortViz: React.FC<SelectionSortVizProps> = ({
   const [showTooltip, setShowTooltip] = useState(false);
   const [showCode, setShowCode] = useState(false);
   const [showRuntimeCode, setShowRuntimeCode] = useState(true);
-  const [currentAlgo, setCurrentAlgo] = useState("Selection Sort");
   // const [currentLine, setCurrentLine] = useState<number | null>(null);
   const [countStep, setCountStep] = useState<number>(0);
   const [currentStep, setCurrentStep] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [totalSteps, setTotalSteps] = useState(0);
 
+  const currentAlgo = `minIndex = 0;
+for (let i = 0; i<n ; i++)
+    for (let j = i ; j < n ; j++)
+        if (arr[j] > arr[j+1])
+            minIndex = j+1;
+
+    swap(arr[j] , arr[j+1]);
+`
   const width = 1450;
   const height = 450;
   const margin = {
@@ -115,6 +122,8 @@ const SelectionSortViz: React.FC<SelectionSortVizProps> = ({
   const barPadding = 0.2;
   const tooltipWidth = 480;
   const tooltipHeight = 29;
+  const explainLines = [`Set minimum index to 0`, `is ${state.array[state.currentIndex]} > ${state.array[comparingIndex]}`, `swapping ${state.array[state.minIndex]} with ${state.array[state.currentIndex]}`,`Sorting complete`];
+
 
   const centerX = width / 2;
   const buttonY = height - margin.bottom + 70;
@@ -514,6 +523,7 @@ const SelectionSortViz: React.FC<SelectionSortVizProps> = ({
       `http://localhost:8080/api/sort/selection/step/${step}`
     );
     // console.log(step);
+    
     const stepData = await response.json();
     setState(stepData.state);
     setCountStep(step);
@@ -1115,10 +1125,17 @@ const SelectionSortViz: React.FC<SelectionSortVizProps> = ({
     }
   };
 
-  return (
-    <div className="flex flex-col items-center gap-4">
-      <svg ref={svgRef} width={width} height={height} className="" />
+  console.log("HELLLOOOOO")
 
+  return (
+    <>
+    <div className="flex flex-col items-center gap-4">
+      <div className="relative">
+      <svg ref={svgRef} width={width} height={height} className="" />
+      </div>
+      <div className="absolute bottom-[15vh]  bg-white p-2 rounded-lg shadow-md my-auto">
+        <p>{state.currentLine == 0 ? explainLines[0] : state.currentLine == 3 ? explainLines[1]: state.currentLine == 6 ? explainLines[2] : explainLines[3] } </p>
+      </div>
       <div className="flex gap-4 w-full justify-center bottom-0 fixed bg-black py-3 px-5 left-0">
         <button
           onClick={resetSort}
@@ -1171,12 +1188,12 @@ const SelectionSortViz: React.FC<SelectionSortVizProps> = ({
         <DraggableCard
           showCode={showCode}
           showRuntimeCode={showRuntimeCode}
-          algorithms={algorithms}
           currentAlgo={currentAlgo}
-          currentLine={currentLine}
+          currentLine={state.currentLine==3?[3,4]:state.currentLine}
         />
       </div>
     </div>
+    </>
   );
 };
 

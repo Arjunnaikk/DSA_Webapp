@@ -105,7 +105,7 @@ const Functions = () => {
           <span className="text-xl font-bold bg-gradient-to-r from-orange-500 to-purple-600 bg-clip-text text-transparent">
             EzzAlgo
           </span>
-          <Select>
+          <Select value={algorithm} onValueChange={setAlgorithm}>
             <SelectTrigger className="w-48 bg-white border-2 border-gray-200 hover:border-indigo-400 text-gray-800 h-[30px] w-[10rem] transition-colors">
               <SelectValue placeholder="Select Algorithm" />
             </SelectTrigger>
@@ -252,7 +252,7 @@ const Functions = () => {
           )}
 
           {/* Main Page Controls */}
-          <div className=" space-y-8 left-[30%] w-[40vw] max-w-3xl mx-auto p-2 mt-20 ">
+          <div className=" space-y-8 left-[30%] w-[40vw] max-w-3xl mx-auto p-2 ">
             <div className="flex items-center space-x-2">
               <Input
                 type="text"

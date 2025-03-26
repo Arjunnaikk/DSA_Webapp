@@ -12,6 +12,7 @@ public class SortState {
     private boolean isCompleted;
     private int[] initialArray;
     private String animation;
+    private int currentLine;
 
     // Getters and setters
     public int[] getArray() {
@@ -68,5 +69,13 @@ public class SortState {
 
     public void setAnimation(String animation) {
         this.animation = animation;
+    }
+
+    public int getCurrentLine() {
+        return currentLine;
+    }
+
+    public void setCurrentLine(int currentLine) {
+        this.currentLine = currentLine;
     }
 }

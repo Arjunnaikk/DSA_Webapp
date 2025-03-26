@@ -74,7 +74,7 @@ public class SortingService {
                     new ArrayList<>(sortedIndices),
                     false,
                     Arrays.stream(initialArray).boxed().collect(Collectors.toList()),
-                    2
+                    3
                 ));
                 if (arr[j] < arr[minIdx]) {
                     minIdx = j;
@@ -91,7 +91,7 @@ public class SortingService {
                 new ArrayList<>(sortedIndices),
                 false, // isCompleted will be true on the last iteration
                 Arrays.stream(initialArray).boxed().collect(Collectors.toList()),
-                3
+                6
             ));
             // Swap found minimum element with first element
             int temp = arr[minIdx];
@@ -111,7 +111,7 @@ public class SortingService {
             new ArrayList<>(sortedIndices),
             false, // isCompleted will be true on the last iteration
             Arrays.stream(initialArray).boxed().collect(Collectors.toList()),
-            4
+            6
         ));
         
         // Add final state with all indices sorted
@@ -123,7 +123,7 @@ public class SortingService {
             sortedIndices,
             true,
             Arrays.stream(initialArray).boxed().collect(Collectors.toList()),
-            5
+            7
         ));
     }
     

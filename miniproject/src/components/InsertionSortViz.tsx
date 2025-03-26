@@ -1,372 +1,720 @@
-"use client"
-import React, { useEffect, useRef, useState } from 'react';
-import * as d3 from 'd3';
-import { Button } from '@/components/ui/button';
-import { ArrowRight, Pause, Play, RotateCcw, SkipForward } from 'lucide-react';
+"use client";
+import React, { useEffect, useRef, useState } from "react";
+import * as d3 from "d3";
+import MediaPlayer from "./MediaPlayer";
+import { ChevronFirst, RotateCcw } from "lucide-react";
+import { Tooltip } from "@/components/ui/tooltip";
+import { TooltipTrigger } from "@/components/ui/tooltip";
+import { TooltipContent } from "@radix-ui/react-tooltip";
+import { Button } from "@/components/ui/button";
+import { Code } from "lucide-react";
+import DraggableCard from "./DraggableCard";
 
-const InsertionSortViz = () => {
-  const d3Container = useRef(null);
-  const [sortSteps, setSortSteps] = useState([]);
-  const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  const [isPaused, setIsPaused] = useState(true);
-  const [isComplete, setIsComplete] = useState(false);
-  const [inputArray, setInputArray] = useState('21, 5, 6, 10, 1');
-  const [speed, setSpeed] = useState(1);
-  const animationRef = useRef(null);
+interface SortState {
+  array: number[];
+  currentIndex: number;
+  comparingIndex: number;
+  sortedIndices: number[];
+  completed: boolean;
+  initialArray: number[];
+  currentLine: number;
+  animation: string;
+}
 
+interface SortingResult {
+  message: string;
+  originalArray: number[];
+  sortedArray: number[];
+  totalSteps: number;
+}
+
+
+interface SortStep {
+  message: string;
+  state: SortState;
+  stepNumber: number;
+}
+
+interface InsertionSortVizProps {
+  array: number[];
+  speed: number;
+}
+
+const InsertionSortViz: React.FC<InsertionSortVizProps> = ({
+  array,
+  speed,
+}) => {
+  const svgRef = useRef<SVGSVGElement | null>(null);
+  const [state, setState] = useState<SortState>({
+    array: array,
+    currentIndex: 0,
+    comparingIndex: 0,
+    sortedIndices: [0],
+    completed: false,
+    initialArray: array,
+    animation: "",
+    currentLine: 0,
+  });
+
+  const arrayLength = state.array.length;
+
+  const [isAnimating, setIsAnimating] = useState<boolean>(false);
+  const [showTooltip, setShowTooltip] = useState(false);
+  const [showRuntimeCode, setShowRuntimeCode] = useState(true);
+  const [showCode, setShowCode] = useState(false);
+  const [countStep, setCountStep] = useState<number>(0);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [totalSteps, setTotalSteps] = useState(0);
+  const [animationDirection, setAnimationDirection] = useState<string>("");
+
+  const currentAlgo = `for i = 1 to length(arr) - 1:
+  current = arr[i]
+  j = i - 1
+  while j >= 0 and arr[j] > current:
+      arr[j + 1] = arr[j]
+      j = j - 1
+  arr[j + 1] = current
+  `
+      
+
+  const width = 1450;
+  const height = 450;
+  
   // Constants for visualization
-  const BAR_COLORS = {
-    default: '#3b82f6', // blue-500
-    comparing: '#f59e0b', // amber-500
-    current: '#ef4444', // red-500
-    sorted: '#10b981', // emerald-500
-    swapping: '#8b5cf6', // violet-500
-  };
+  const barPadding = 5;
+  const verticalShift = 120;
+  const barWidth = 40;
+  const margin = 80;
+  const transitionDuration = 800 / (speed || 1);
 
-  const fetchSortSteps = async () => {
-    try {
-      // First initialize the sort with the input array
-      const array = inputArray.split(',').map(num => parseInt(num.trim()));
+  useEffect(() => {
+    const initializeNewArray = async () => {
+      try {
+        const response = await fetch(
+          "http://localhost:8080/api/sort/insertion/init",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              array: array,
+            }),
+          }
+        );
+
+        const newState: SortingResult = await response.json();
+        setState((prev) => ({
+          ...prev,
+          array: newState.originalArray,
+          initialArray: newState.originalArray,
+          currentIndex: 0,
+          comparingIndex: 0,
+          sortedIndices: [0],
+          completed: false,
+          animation: "",
+          currentLine: 0,
+        }));
+        setTotalSteps(newState.totalSteps);
+        setAnimationDirection("");
+      } catch (error) {
+        console.error("Error initializing new array:", error);
+      }
+    };
+
+    initializeNewArray();
+  }, [array]);
+
+  useEffect(() => {
+    if (!svgRef.current) return;
+  
+    const svg = d3.select(svgRef.current);
+    
+    // Calculate positions and dimensions
+    const arrayWidth = state.array.length * (barWidth + barPadding) - barPadding;
+    const startX = (width - arrayWidth) / 2;
+    
+    // Scale for bar heights
+    const yScale = d3
+      .scaleLinear()
+      .domain([0, d3.max(state.array) * 1.2 || 100])
+      .range([0, height - 250]);
+    
+    // First render - create the structure if it doesn't exist
+    if (svg.select('.main-array').empty()) {
+      // Clear SVG first
+      svg.selectAll("*").remove();
       
-      const initResponse = await fetch('http://localhost:8080/api/sort/insertion/init', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ array }),
+      // Create a title for the visualization
+      svg.append("text")
+        .attr("x", width / 2)
+        .attr("y", 30)
+        .attr("text-anchor", "middle")
+        .attr("font-size", "18px")
+        .attr("font-weight", "bold")
+        .text("Insertion Sort Animation");
+      
+      // Create array representation
+      svg.append("g")
+        .attr("class", "main-array")
+        .attr("transform", `translate(${startX}, 50)`);
+      
+      // Add a horizontal line to separate the main array from the element below
+      svg.append("line")
+        .attr("class", "separator-line")
+        .attr("x1", margin)
+        .attr("y1", 50 + verticalShift - 20)
+        .attr("x2", width - margin)
+        .attr("y2", 50 + verticalShift - 20)
+        .attr("stroke", "#ccc")
+        .attr("stroke-width", 1)
+        .attr("stroke-dasharray", "5,5");
+      
+      // Add status text container
+      svg.append("text")
+        .attr("class", "status-text")
+        .attr("x", width / 2)
+        .attr("y", height - 40)
+        .attr("text-anchor", "middle")
+        .attr("font-size", "16px");
+    }
+    
+    const mainArray = svg.select('.main-array');
+    
+    // Determine the current phase and active elements
+    let sortingPhase = "normal";
+    let activeValue = null;
+    let activeIdx = null;
+    let compareIdx = null;
+    let shiftedElements: number[] = [];
+    
+    // Make a deep copy of data to work with
+    let displayData = [...state.array];
+    
+    if (state.currentIndex > 0) {
+      activeIdx = state.currentIndex;
+      activeValue = state.array[activeIdx];
+      compareIdx = state.comparingIndex;
+      
+      if (compareIdx >= 0) {
+        sortingPhase = 'comparing';
+        
+        // For visualization, we need to create a modified array
+        // that shows the current state correctly
+        displayData = [...state.array];
+        
+        // The key fix: We need to ensure the active element is not duplicated
+        // Remove the active element from its original position
+        if (activeIdx < displayData.length) {
+          // Create a visual gap where the active element would be
+          displayData[activeIdx] = null;
+        }
+        
+        // Track which elements need to be shifted right
+        // These are elements between the comparison index and the active index
+        for (let i = compareIdx + 1; i <= activeIdx; i++) {
+          if (i < displayData.length) {
+            shiftedElements.push(i);
+          }
+        }
+      }
+    } else if (state.completed) {
+      sortingPhase = 'done';
+    }
+    
+    // Create a key function that generates unique IDs for data points
+    // This ensures stable animations
+    const keyFn = (d: any, i: number) => d === null ? `placeholder-${i}` : `element-${d}-${i}`;
+    
+    // Join data for main array bars
+    const bars = mainArray.selectAll("g.bar")
+      .data(displayData.map((value, index) => ({ value, index })), 
+            d => keyFn(d.value, d.index));
+    
+    // Remove old elements with smooth fade-out
+    bars.exit()
+      .transition()
+      .duration(transitionDuration / 2)
+      .style("opacity", 0)
+      .remove();
+    
+    // Add new elements
+    const enterBars = bars.enter()
+      .append("g")
+      .attr("class", "bar")
+      .style("opacity", 0)
+      .attr("transform", (d) => `translate(${d.index * (barWidth + barPadding)}, 0)`);
+    
+    // Add rectangles and text to new elements
+    enterBars.each(function(d) {
+      const group = d3.select(this);
+      
+      if (d.value === null) {
+        // This is a placeholder for the removed element
+        group.append("rect")
+          .attr("class", "placeholder-rect")
+          .attr("width", barWidth)
+          .attr("height", 0) // Start with height 0, will animate
+          .attr("y", height - 200)
+          .attr("rx", 3)
+          .attr("fill", "none")
+          .attr("stroke", "#ff6b6b")
+          .attr("stroke-width", 2)
+          .attr("stroke-dasharray", "5,3");
+      } else {
+        // Regular bar element
+        group.append("rect")
+          .attr("class", "bar-rect")
+          .attr("width", barWidth)
+          .attr("height", 0) // Start with height 0, will animate
+          .attr("y", height - 200)
+          .attr("rx", 3)
+          .attr("fill", "#6c5ce7"); // Default color
+          
+        group.append("text")
+          .attr("class", "bar-text")
+          .text(d.value)
+          .attr("x", barWidth / 2)
+          .attr("y", height - 205)
+          .attr("text-anchor", "middle")
+          .attr("fill", "black")
+          .attr("font-size", "14px")
+          .attr("font-weight", "bold")
+          .style("opacity", 0); // Start invisible
+      }
+    });
+    
+    // Merge enter and update selections
+    const allBars = bars.merge(enterBars as any);
+    
+    // Update all elements with smooth transitions
+    allBars.transition()
+      .duration(transitionDuration)
+      .style("opacity", 1)
+      .attr("transform", (d) => {
+        // If this element has been shifted right, adjust its position
+        const isShifted = shiftedElements.includes(d.index);
+        const shiftOffset = isShifted ? barWidth + barPadding : 0;
+        return `translate(${d.index * (barWidth + barPadding) + shiftOffset}, 0)`;
       });
+    
+    // Update rectangles and text in all bars
+    allBars.each(function(d) {
+      const group = d3.select(this);
       
-      const initData = await initResponse.json();
-      
-      // Then fetch all steps
-      const stepsResponse = await fetch('http://localhost:8080/api/sort/insertion/steps');
-      const stepsData = await stepsResponse.json();
-      
-      setSortSteps(stepsData);
-      setCurrentStepIndex(0);
-      setIsComplete(false);
-      setIsPaused(true);
-    } catch (error) {
-      console.error('Error fetching sort steps:', error);
+      if (d.value === null) {
+        // Update placeholder rectangle
+        group.select(".placeholder-rect")
+          .transition()
+          .duration(transitionDuration)
+          .attr("height", activeValue ? yScale(activeValue) : 0)
+          .attr("y", activeValue ? height - yScale(activeValue) - 200 : height - 200);
+      } else {
+        // Determine color based on comparison state
+        let fillColor = "#6c5ce7"; // Default
+        
+        if (d.index === compareIdx) {
+          fillColor = "#4ecdc4"; // Element being compared with
+        } else if (state.sortedIndices.includes(d.index)) {
+          fillColor = "#4ADE80"; // Sorted elements
+        } else if (shiftedElements.includes(d.index)) {
+          fillColor = "#9381ff"; // Elements that have been shifted right
+        }
+        
+        // Update rectangle
+        group.select(".bar-rect")
+          .transition()
+          .duration(transitionDuration)
+          .attr("height", yScale(d.value))
+          .attr("y", height - yScale(d.value) - 200)
+          .attr("fill", fillColor);
+          
+        // Update text
+        group.select(".bar-text")
+          .text(d.value)
+          .transition()
+          .duration(transitionDuration)
+          .attr("y", height - yScale(d.value) - 205)
+          .style("opacity", 1);
+      }
+    });
+    
+    // Handle the active element being moved
+    // This is the element that appears below the array
+    const activeElementGroup = svg.selectAll("g.active-element")
+      .data(activeValue !== null && sortingPhase === 'comparing' ? [activeValue] : []);
+    
+    // Remove old active element with animation
+    activeElementGroup.exit()
+      .transition()
+      .duration(transitionDuration / 2)
+      .style("opacity", 0)
+      .remove();
+    
+    // Add new active element
+    const enterActiveElement = activeElementGroup.enter()
+      .append("g")
+      .attr("class", "active-element")
+      .style("opacity", 0);
+    
+    // Calculate position for active element
+    let activeX = 0;
+    if (compareIdx !== null) {
+      // Position it according to the comparison index
+      activeX = compareIdx * (barWidth + barPadding);
+    } else if (activeIdx !== null) {
+      // If just moving down, position it below its original index
+      activeX = activeIdx * (barWidth + barPadding);
     }
-  };
-
-  const resetVisualization = () => {
-    setCurrentStepIndex(0);
-    setIsComplete(false);
-    setIsPaused(true);
-    if (animationRef.current) {
-      cancelAnimationFrame(animationRef.current);
-    }
-    renderChart(sortSteps[0]);
-  };
-
-  const togglePlayPause = () => {
-    setIsPaused(!isPaused);
-  };
-
-  const stepForward = () => {
-    if (currentStepIndex < sortSteps.length - 1) {
-      const nextIndex = currentStepIndex + 1;
-      setCurrentStepIndex(nextIndex);
-      renderChart(sortSteps[nextIndex]);
+    
+    // Setup active element
+    enterActiveElement.attr("transform", `translate(${startX + activeX}, ${50})`); // Start at the top
+    
+    enterActiveElement.append("rect")
+      .attr("width", barWidth)
+      .attr("height", 0) // Start with height 0
+      .attr("y", height - 200)
+      .attr("rx", 3)
+      .attr("fill", "#ff6b6b");
       
-      if (nextIndex === sortSteps.length - 1) {
-        setIsComplete(true);
+    enterActiveElement.append("text")
+      .text(activeValue)
+      .attr("x", barWidth / 2)
+      .attr("y", height - 205)
+      .attr("text-anchor", "middle")
+      .attr("fill", "black")
+      .attr("font-size", "14px")
+      .attr("font-weight", "bold")
+      .style("opacity", 0);
+    
+    // Update active element with animations
+    const allActiveElements = activeElementGroup.merge(enterActiveElement as any);
+    
+    allActiveElements.transition()
+      .duration(transitionDuration)
+      .style("opacity", 1)
+      .attr("transform", `translate(${startX + activeX}, ${50 + verticalShift})`);
+    
+    allActiveElements.select("rect")
+      .transition()
+      .duration(transitionDuration)
+      .attr("height", activeValue ? yScale(activeValue) : 0)
+      .attr("y", activeValue ? height - yScale(activeValue) - 200 : height - 200);
+      
+    allActiveElements.select("text")
+      .transition()
+      .duration(transitionDuration)
+      .attr("y", activeValue ? height - yScale(activeValue) - 205 : height - 205)
+      .style("opacity", 1);
+    
+    // Update status text
+    let statusText = "";
+    if (sortingPhase === 'comparing' && activeValue !== null && compareIdx !== null) {
+      statusText = `Comparing ${activeValue} with ${state.array[compareIdx]} at index ${compareIdx}`;
+    } else if (sortingPhase === 'done') {
+      statusText = "Sorting complete!";
+    } else {
+      statusText = `Current index: ${state.currentIndex}`;
+    }
+    
+    svg.select(".status-text")
+      .text(statusText)
+      .style("opacity", 0)
+      .transition()
+      .duration(transitionDuration / 2)
+      .style("opacity", 1);
+      
+  }, [state, width, height, speed]);
+  
+
+  const sleep = (ms: number): Promise<void> =>
+    new Promise((resolve) => setTimeout(resolve, ms));
+
+  useEffect(() => {
+    const runAnimation = async () => {
+      if (isPlaying && !state.completed && !isAnimating) {
+        await playStep();
+      }
+    };
+
+    if (isPlaying) {
+      runAnimation();
+    }
+
+    if (currentStep === totalSteps - 1 && isPlaying) {
+      setCurrentStep(0);
+      handlePause();
+    }
+  }, [isPlaying, countStep, state.completed, isAnimating, currentStep]);
+
+  const playStep = async (): Promise<void> => {
+    if (!isAnimating) {
+      setIsAnimating(true);
+      try {
+        const response = await fetch(
+          `http://localhost:8080/api/sort/insertion/step/${countStep}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        const stepData: SortStep = await response.json();
+
+        setState((prev: SortState) => ({
+          ...prev,
+          array: stepData.state.array,
+          currentIndex: stepData.state.currentIndex,
+          comparingIndex: stepData.state.comparingIndex,
+          sortedIndices: stepData.state.sortedIndices,
+          completed: stepData.state.completed,
+          initialArray: stepData.state.initialArray,
+          animation: stepData.state.animation,
+        }));
+
+        setCurrentStep(countStep);
+        await sleep(800 / speed);
+
+        setCountStep((prev) => prev + 1);
+      } catch (error) {
+        console.error("Error during animation step:", error);
+      } finally {
+        setIsAnimating(false);
       }
     }
   };
 
-  const skipToEnd = () => {
-    const lastIndex = sortSteps.length - 1;
-    setCurrentStepIndex(lastIndex);
-    renderChart(sortSteps[lastIndex]);
-    setIsComplete(true);
-    setIsPaused(true);
+  const nextStep = async (): Promise<void> => {
+    if (state.completed || isAnimating) return;
+    
+    setIsAnimating(true);
+    try {
+      const response = await fetch(
+        `http://localhost:8080/api/sort/insertion/step/${countStep}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const stepData: SortStep = await response.json();
+
+      setState((prev: SortState) => ({
+        ...prev,
+        array: stepData.state.array,
+        currentIndex: stepData.state.currentIndex,
+        comparingIndex: stepData.state.comparingIndex,
+        sortedIndices: stepData.state.sortedIndices,
+        completed: stepData.state.completed,
+        initialArray: stepData.state.initialArray,
+        animation: stepData.state.animation,
+      }));
+
+      setCurrentStep(countStep);
+      setCountStep((prev) => prev + 1);
+    } catch (error) {
+      console.error("Error during next step:", error);
+    } finally {
+      setIsAnimating(false);
+    }
   };
 
-  // Animation loop
-  useEffect(() => {
-    if (!isPaused && !isComplete && sortSteps.length > 0) {
-      const animateStep = () => {
-        if (currentStepIndex < sortSteps.length - 1) {
-          const nextIndex = currentStepIndex + 1;
-          setCurrentStepIndex(nextIndex);
-          
-          if (nextIndex === sortSteps.length - 1) {
-            setIsComplete(true);
-            setIsPaused(true);
-          } else {
-            // Adjust timing based on speed setting
-            const delay = 1000 / speed;
-            animationRef.current = setTimeout(() => {
-              animationRef.current = requestAnimationFrame(animateStep);
-            }, delay);
-          }
-        } else {
-          setIsComplete(true);
-          setIsPaused(true);
+  const previousStep = async (): Promise<void> => {
+    if (isAnimating || countStep <= 0) return;
+
+    setIsAnimating(true);
+    try {
+      const response = await fetch(
+        `http://localhost:8080/api/sort/insertion/step/${countStep - 1}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
         }
-      };
-      
-      animationRef.current = requestAnimationFrame(animateStep);
-      
-      return () => {
-        if (animationRef.current) {
-          cancelAnimationFrame(animationRef.current);
-          clearTimeout(animationRef.current);
+      );
+
+      const stepData: SortStep = await response.json();
+
+      setAnimationDirection(stepData.state.animation);
+
+      setState((prev) => ({
+        ...prev,
+        array: stepData.state.array,
+        currentIndex: stepData.state.currentIndex,
+        comparingIndex: stepData.state.comparingIndex,
+        sortedIndices: stepData.state.sortedIndices,
+        completed: stepData.state.completed,
+        initialArray: stepData.state.initialArray,
+        animation: stepData.state.animation,
+      }));
+
+      setCountStep((prev) => prev - 1);
+      setCurrentStep((prev) => prev - 1);
+    } catch (error) {
+      console.error("Error during previous step:", error);
+    } finally {
+      setIsAnimating(false);
+    }
+  };
+
+  const resetSort = async (): Promise<void> => {
+    setIsAnimating(true);
+    setIsPlaying(false);
+
+    try {
+      const response = await fetch(
+        "http://localhost:8080/api/sort/insertion/init",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            array: state.initialArray,
+          }),
         }
-      };
+      );
+
+      const newState: SortingResult = await response.json();
+
+      setState((prev) => ({
+        ...prev,
+        array: newState.originalArray,
+        initialArray: newState.originalArray,
+        currentIndex: 0,
+        comparingIndex: 0,
+        sortedIndices: [0],
+        completed: false,
+        animation: "",
+      }));
+
+      setAnimationDirection("");
+      setCountStep(0);
+      setCurrentStep(0);
+    } catch (error) {
+      console.error("Error resetting sort:", error);
+    } finally {
+      setIsAnimating(false);
     }
-  }, [isPaused, currentStepIndex, sortSteps.length, isComplete, speed]);
+  };
 
-  // Render chart for current step
-  useEffect(() => {
-    if (sortSteps.length > 0 && currentStepIndex < sortSteps.length) {
-      renderChart(sortSteps[currentStepIndex]);
+  const handlePlay = async () => {
+    if (currentStep === 0) {
+      setCountStep(0);
+      await resetSort();
     }
-  }, [currentStepIndex, sortSteps]);
+    setIsPlaying(true);
+    setCurrentStep(countStep);
+  };
 
-  // Initialize chart on first load or when input array changes
-  useEffect(() => {
-    if (sortSteps.length > 0) {
-      renderChart(sortSteps[0]);
-    }
-  }, [sortSteps]);
+  const handlePause = () => {
+    setIsPlaying(false);
+  };
 
-  const renderChart = (stepData) => {
-    if (!d3Container.current || !stepData) return;
+  const handleSeek = async (step: number) => {
+    if (isAnimating) return;
+    
+    setIsAnimating(true);
+    try {
+      const response = await fetch(
+        `http://localhost:8080/api/sort/insertion/step/${step}`
+      );
+      const stepData = await response.json();
 
-    const containerWidth = d3Container.current.clientWidth;
-    const containerHeight = 400;
-    const margin = { top: 40, right: 20, bottom: 60, left: 20 };
-    const width = containerWidth - margin.left - margin.right;
-    const height = containerHeight - margin.top - margin.bottom;
+      setAnimationDirection(stepData.state.animation);
 
-    // Clear previous SVG
-    d3.select(d3Container.current).selectAll("*").remove();
-
-    // Create SVG
-    const svg = d3.select(d3Container.current)
-      .append("svg")
-      .attr("width", containerWidth)
-      .attr("height", containerHeight)
-      .append("g")
-      .attr("transform", `translate(${margin.left},${margin.top})`);
-
-    // Extract data from the step
-    const array = stepData.array || [];
-    const currentIndex = stepData.currentIndex;
-    const comparingIndex = stepData.comparingIndex;
-    const sortedIndices = stepData.sortedIndices || [];
-    const animation = stepData.animation || "";
-    const completed = stepData.completed || false;
-
-    // Create scales
-    const xScale = d3.scaleBand()
-      .domain(array.map((_, i) => i))
-      .range([0, width])
-      .padding(0.2);
-
-    const yScale = d3.scaleLinear()
-      .domain([0, d3.max(array) * 1.2])
-      .range([height, 0]);
-
-    // Define colors based on state
-    const getBarColor = (index) => {
-      if (completed) return BAR_COLORS.sorted;
-      if (index === currentIndex) return BAR_COLORS.current;
-      if (index === comparingIndex) return BAR_COLORS.comparing;
-      if (sortedIndices.includes(index)) return BAR_COLORS.sorted;
-      return BAR_COLORS.default;
-    };
-
-    // Create bars
-    const bars = svg.selectAll(".bar")
-      .data(array)
-      .enter()
-      .append("rect")
-      .attr("class", "bar")
-      .attr("x", (d, i) => xScale(i))
-      .attr("width", xScale.bandwidth())
-      .attr("y", d => yScale(d))
-      .attr("height", d => height - yScale(d))
-      .attr("fill", (d, i) => getBarColor(i))
-      .attr("rx", 4)
-      .attr("ry", 4);
-
-    // Add values on top of bars
-    svg.selectAll(".bar-value")
-      .data(array)
-      .enter()
-      .append("text")
-      .attr("class", "bar-value")
-      .attr("x", (d, i) => xScale(i) + xScale.bandwidth() / 2)
-      .attr("y", d => yScale(d) - 10)
-      .attr("text-anchor", "middle")
-      .attr("font-size", "12px")
-      .attr("fill", "#333")
-      .text(d => d);
-
-    // Add index below bars
-    svg.selectAll(".index-label")
-      .data(array)
-      .enter()
-      .append("text")
-      .attr("class", "index-label")
-      .attr("x", (d, i) => xScale(i) + xScale.bandwidth() / 2)
-      .attr("y", height + 20)
-      .attr("text-anchor", "middle")
-      .attr("font-size", "12px")
-      .attr("fill", "#666")
-      .text((d, i) => i);
-
-    // Add step info
-    svg.append("text")
-      .attr("x", width / 2)
-      .attr("y", -20)
-      .attr("text-anchor", "middle")
-      .attr("font-size", "14px")
-      .attr("font-weight", "bold")
-      .attr("fill", "#333")
-      .text(`Step ${currentStepIndex + 1} of ${sortSteps.length} - ${completed ? "Sorted!" : animation || "Comparing"}`);
-
-    // If there's a current animation happening, show it
-    if (animation === "swap" && currentIndex !== null && comparingIndex !== null) {
-      svg.append("path")
-        .attr("d", d3.line()([
-          [xScale(comparingIndex) + xScale.bandwidth() / 2, yScale(array[comparingIndex]) - 25],
-          [xScale(currentIndex) + xScale.bandwidth() / 2, yScale(array[currentIndex]) - 25]
-        ]))
-        .attr("stroke", BAR_COLORS.swapping)
-        .attr("stroke-width", 2)
-        .attr("fill", "none")
-        .attr("marker-end", "url(#arrow)");
-
-      // Add arrowhead marker
-      svg.append("defs").append("marker")
-        .attr("id", "arrow")
-        .attr("viewBox", "0 -5 10 10")
-        .attr("refX", 5)
-        .attr("refY", 0)
-        .attr("markerWidth", 6)
-        .attr("markerHeight", 6)
-        .attr("orient", "auto")
-        .append("path")
-        .attr("d", "M0,-5L10,0L0,5")
-        .attr("fill", BAR_COLORS.swapping);
+      setState(stepData.state);
+      setCountStep(step);
+      setCurrentStep(step);
+    } catch (error) {
+      console.error("Error during seek:", error);
+    } finally {
+      setIsAnimating(false);
+      setIsPlaying(false);
     }
   };
 
   return (
-    <div className="flex flex-col w-full max-w-4xl mx-auto p-4 bg-white rounded-lg shadow-md">
-      <div className="flex flex-col space-y-4 mb-4">
-        <h2 className="text-2xl font-bold text-center text-gray-800">Insertion Sort Visualization</h2>
-        
-        <div className="flex space-x-2">
-          <input 
-            type="text" 
-            value={inputArray} 
-            onChange={(e) => setInputArray(e.target.value)}
-            className="flex-grow p-2 border border-gray-300 rounded-md text-sm"
-            placeholder="Enter numbers separated by commas"
-          />
-          <Button onClick={fetchSortSteps} className="bg-blue-500 hover:bg-blue-600">
-            Sort
-          </Button>
-        </div>
-        
-        <div className="flex justify-between items-center">
-          <div className="flex space-x-2">
-            <Button 
-              onClick={togglePlayPause} 
-              variant="outline" 
-              disabled={sortSteps.length === 0 || isComplete}
-              className="flex items-center gap-1"
+    <div className="flex flex-col items-center gap-4">
+      <svg ref={svgRef} width={width} height={height} className="" />
+
+      <div className="flex gap-4 w-full justify-center bottom-0 fixed bg-black py-3 px-5 left-0">
+        <button
+          onClick={resetSort}
+          disabled={isAnimating}
+          className="px-2 py-1 h-10 w-10 bg-gradient-to-r from-gray-500 to-gray-600
+                     text-white rounded-full shadow-md hover:from-gray-600
+                     hover:to-gray-700 disabled:opacity-50
+                     disabled:cursor-not-allowed"
+        >
+          <RotateCcw />
+        </button>
+        <button
+          onClick={previousStep}
+          disabled={isAnimating || countStep <= 0 || isPlaying}
+          className="px-2 py-1 h-10 w-10 bg-gradient-to-r from-blue-500 to-blue-600
+                     text-white rounded-full shadow-md hover:from-blue-600
+                     hover:to-blue-700 disabled:opacity-50
+                     disabled:cursor-not-allowed"
+        >
+          <ChevronFirst />
+        </button>
+
+        <MediaPlayer
+          currentStep={currentStep}
+          totalSteps={totalSteps}
+          isPlaying={isPlaying}
+          onPlay={handlePlay}
+          onPause={handlePause}
+          onSeek={handleSeek}
+          nextStep={nextStep}
+          isAnimating={isAnimating}
+          state={{ ...state, minIndex: -1 }}
+        />
+
+        {/* Code Button */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              onClick={() => setShowCode(!showCode)}
+              className="h-10 w-21 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-lg rounded-lg shadow-md hover:shadow-lg transition-all duration-200 ease-in-out transform hover:scale-105"
             >
-              {isPaused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
-              {isPaused ? "Play" : "Pause"}
+              <Code className="h-6 w-6 mr-0" />
+              Code
             </Button>
-            <Button 
-              onClick={stepForward} 
-              variant="outline" 
-              disabled={sortSteps.length === 0 || isComplete || currentStepIndex >= sortSteps.length - 1}
-              className="flex items-center gap-1"
-            >
-              <ArrowRight className="h-4 w-4" />
-              Step
-            </Button>
-            <Button 
-              onClick={skipToEnd} 
-              variant="outline" 
-              disabled={sortSteps.length === 0 || isComplete || currentStepIndex >= sortSteps.length - 1}
-              className="flex items-center gap-1"
-            >
-              <SkipForward className="h-4 w-4" />
-              Complete
-            </Button>
-            <Button 
-              onClick={resetVisualization} 
-              variant="outline" 
-              disabled={sortSteps.length === 0}
-              className="flex items-center gap-1"
-            >
-              <RotateCcw className="h-4 w-4" />
-              Reset
-            </Button>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600">Speed:</span>
-            <input 
-              type="range" 
-              min="0.5" 
-              max="5" 
-              step="0.5" 
-              value={speed} 
-              onChange={(e) => setSpeed(parseFloat(e.target.value))}
-              className="w-24"
-            />
-            <span className="text-sm font-medium">{speed}x</span>
-          </div>
-        </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Toggle Code View</p>
+          </TooltipContent>
+        </Tooltip>
+        <DraggableCard
+          showCode={showCode}
+          showRuntimeCode={showRuntimeCode}
+          currentAlgo={currentAlgo}
+          currentLine={state.currentLine}
+        />
       </div>
-      
-      {sortSteps.length > 0 ? (
-        <div 
-          className="w-full h-[400px] border border-gray-200 rounded-lg bg-gray-50" 
-          ref={d3Container}
-        ></div>
-      ) : (
-        <div className="w-full h-[400px] border border-gray-200 rounded-lg bg-gray-50 flex items-center justify-center">
-          <p className="text-gray-500">Click Sort to visualize insertion sort</p>
-        </div>
-      )}
-      
-      {sortSteps.length > 0 && (
-        <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-          <h3 className="font-semibold mb-2">Current Step Info:</h3>
-          <div className="grid grid-cols-2 gap-2 text-sm">
-            <div>
-              <span className="font-medium">Step:</span> {currentStepIndex + 1} of {sortSteps.length}
-            </div>
-            <div>
-              <span className="font-medium">Current Index:</span> {sortSteps[currentStepIndex]?.currentIndex}
-            </div>
-            <div>
-              <span className="font-medium">Comparing Index:</span> {sortSteps[currentStepIndex]?.comparingIndex}
-            </div>
-            <div>
-              <span className="font-medium">Animation:</span> {sortSteps[currentStepIndex]?.animation || "None"}
-            </div>
-            <div>
-              <span className="font-medium">Status:</span> {sortSteps[currentStepIndex]?.completed ? "Completed" : "In Progress"}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
 
 export default InsertionSortViz;
+
+
+
+
+
+//     for i = 1 to length(arr) - 1:
+//         current = arr[i]
+//         j = i - 1
+//         while j >= 0 and arr[j] > current:
+//             arr[j + 1] = arr[j]
+//             j = j - 1
+//         arr[j + 1] = current
+
