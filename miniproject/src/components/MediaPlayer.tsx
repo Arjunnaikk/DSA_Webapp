@@ -13,7 +13,6 @@ interface MediaPlayerProps {
   state: SortState;
 }
 
-
 interface SortState {
   array: number[];
   currentIndex: number;
