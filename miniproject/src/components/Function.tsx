@@ -4,6 +4,8 @@ import SelectionSortViz from "@/components/SelectionSortViz";
 import InsertionSortViz from "@/components/InsertionSortViz";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import Link from "next/link";
+import { useRouter } from 'next/navigation';
 import {
   ArrowDownUp,
   RefreshCw,
@@ -31,9 +33,47 @@ import StackViz from "./StackViz";
 import QueueViz from "./QueueViz";
 import LinkedListViz from "./LinkedListViz";
 
-const Functions = () => {
+// Algorithm categories
+const ALGORITHM_CATEGORIES = {
+  sorting: ["selection", "insertion"],
+  searching: ["linear", "binary"],
+  traversal: ["bfs", "dfs"],
+  dataStructure: ["stack", "queue", "linked"]
+};
+
+// Algorithm display names
+const ALGORITHM_NAMES = {
+  selection: "Selection Sort",
+  insertion: "Insertion Sort",
+  linear: "Linear Search",
+  binary: "Binary Search",
+  bfs: "BFS Graph Traversal",
+  dfs: "DFS Graph Traversal",
+  stack: "Stack",
+  queue: "Queue",
+  linked: "Linked List"
+};
+
+// Function to get category based on algorithm
+const getAlgorithmCategory = (algo: string) => {
+  for (const [category, algorithms] of Object.entries(ALGORITHM_CATEGORIES)) {
+    if (algorithms.includes(algo)) {
+      return category;
+    }
+  }
+  return "sorting"; // Default category
+};
+
+interface FunctionsProps {
+  initialAlgorithm?: string;
+  initialCategory?: string;
+}
+
+const Functions = ({ initialAlgorithm, initialCategory }: FunctionsProps) => {
+  const router = useRouter();
   const [isControlsOpen, setIsControlsOpen] = useState(false);
-  const [algorithm, setAlgorithm] = useState("selection");
+  const [algorithm, setAlgorithm] = useState(initialAlgorithm || "selection");
+  const [category, setCategory] = useState(initialCategory || getAlgorithmCategory(initialAlgorithm || "selection"));
   const [arraySize, setArraySize] = useState("6");
   const [userArray, setUserArray] = useState(
     Array.from({ length: 6 }, () => Math.floor(Math.random() * 100) + 1).join(
@@ -52,6 +92,19 @@ const Functions = () => {
     const newArray = userArray.split(",").map((num) => parseInt(num.trim()));
     setCurrentArray(newArray);
     setShowVisualization(true);
+  };
+
+  const handleAlgorithmChange = (value: string) => {
+    setAlgorithm(value);
+    router.push(`/${value}`);
+  };
+
+  const handleCategoryChange = (value: string) => {
+    setCategory(value);
+    // Select the first algorithm from the new category
+    const newAlgo = ALGORITHM_CATEGORIES[value as keyof typeof ALGORITHM_CATEGORIES][0];
+    setAlgorithm(newAlgo);
+    router.push(`/${newAlgo}`);
   };
 
   const arraySizeCheck = parseInt(arraySize) <= 100 && parseInt(arraySize) > 0;
@@ -126,26 +179,41 @@ const Functions = () => {
       {/* Navbar */}
       <nav className="h-[50px] w-full bg-white border-b border-gray-200 fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 shadow-md">
         <div className="flex items-center gap-4">
-          <span className="text-xl font-bold bg-gradient-to-r from-orange-500 to-purple-600 bg-clip-text text-transparent">
-            EzzAlgo
-          </span>
-          <Select value={algorithm} onValueChange={setAlgorithm}>
+          <Link href="/" className="flex items-center space-x-2">
+            <span className="text-xl font-bold bg-gradient-to-r from-orange-500 to-purple-600 bg-clip-text text-transparent">
+              EzzAlgo
+            </span>
+          </Link>
+          
+          {/* Category Selector */}
+          <Select value={category} onValueChange={handleCategoryChange}>
+            <SelectTrigger className="w-48 bg-white border-2 border-gray-200 hover:border-indigo-400 text-gray-800 h-[30px] w-[10rem] transition-colors">
+              <SelectValue placeholder="Select Category" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="sorting">Sorting Algorithms</SelectItem>
+              <SelectItem value="searching">Searching Algorithms</SelectItem>
+              <SelectItem value="traversal">Graph Traversal</SelectItem>
+              <SelectItem value="dataStructure">Data Structures</SelectItem>
+            </SelectContent>
+          </Select>
+          
+          {/* Algorithm Selector - Now filtered by category */}
+          <Select value={algorithm} onValueChange={handleAlgorithmChange}>
             <SelectTrigger className="w-48 bg-white border-2 border-gray-200 hover:border-indigo-400 text-gray-800 h-[30px] w-[10rem] transition-colors">
               <SelectValue placeholder="Select Algorithm" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="selection">Selection Sort</SelectItem>
-              <SelectItem value="insertion">Insertion Sort</SelectItem>
-              <SelectItem value="bfs">BFS Graph Traversal</SelectItem>
-              <SelectItem value="dfs">DFS Graph Traversal</SelectItem>
-              <SelectItem value="linear">Linear Search</SelectItem>
-              <SelectItem value="binary">Binary Search</SelectItem>
-              <SelectItem value="stack">Stack</SelectItem>
-              <SelectItem value="queue">Queue</SelectItem>
-              <SelectItem value="linked">Linked List</SelectItem>
+              {ALGORITHM_CATEGORIES[category as keyof typeof ALGORITHM_CATEGORIES].map((algo) => (
+                <SelectItem key={algo} value={algo}>
+                  {ALGORITHM_NAMES[algo as keyof typeof ALGORITHM_NAMES]}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
+        
+        {/* Rest of the navbar */}
         <div className="flex items-center gap-4">
           <ModeToggle />
           <Button
