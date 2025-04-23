@@ -28,6 +28,8 @@ import LinearSearchViz from "./LinearSearchViz";
 import DFSVisualization from "./DFSVisualization";
 import BinarySearchViz from "./BinarySearchViz";
 import StackViz from "./StackViz";
+import QueueViz from "./QueueViz";
+import LinkedListViz from "./LinkedListViz";
 
 const Functions = () => {
   const [isControlsOpen, setIsControlsOpen] = useState(false);
@@ -139,6 +141,8 @@ const Functions = () => {
               <SelectItem value="linear">Linear Search</SelectItem>
               <SelectItem value="binary">Binary Search</SelectItem>
               <SelectItem value="stack">Stack</SelectItem>
+              <SelectItem value="queue">Queue</SelectItem>
+              <SelectItem value="linked">Linked List</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -299,6 +303,10 @@ const Functions = () => {
                 <BinarySearchViz array={currentArray} speed={speed} />
               ) : algorithm === "stack" ? (
                 <StackViz />
+              ) : algorithm === "queue" ? (
+                <QueueViz />
+              ) : algorithm === "linked" ? (
+                <LinkedListViz />
               ) : (
                 <LinearSearchViz array={currentArray} speed={speed} />
               )}
@@ -306,7 +314,7 @@ const Functions = () => {
           )}
 
           {/* Main Page Controls */}
-          {algorithm !== "bfs" && algorithm !== "dfs" && algorithm !== "stack" && (
+          {algorithm !== "bfs" && algorithm !== "dfs" && algorithm !== "stack" &&  algorithm !== "queue" && algorithm !== "linked" && (
             <div className=" space-y-8 left-[30%] w-[40vw] max-w-3xl mx-auto p-2 ">
               <div className="flex items-center space-x-2">
                 <Input

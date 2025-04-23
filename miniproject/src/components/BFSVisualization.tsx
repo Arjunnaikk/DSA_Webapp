@@ -577,10 +577,6 @@ const BFSVisualization: React.FC = () => {
     setIsPlaying(false);
   };
 
-  const handleSpeedChange = (newSpeed: number) => {
-    setSpeed(newSpeed);
-  };
-
   // Auto-play animation
   useEffect(() => {
     if (!isPlaying || currentStateIndex >= bfsStates.length - 1) {

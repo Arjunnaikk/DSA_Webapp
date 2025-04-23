@@ -16,36 +16,39 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
-interface StackState {
+interface QueueState {
   array: string[];
-  top: number;
+  front: number;
+  rear: number;
   maxSize: number;
-  operation: "push" | "pop" | "peek" | "idle";
+  operation: "enqueue" | "dequeue" | "peek" | "idle";
   operationValue?: string;
   isAnimating: boolean;
 }
 
-const StackViz: React.FC = () => {
+const QueueViz: React.FC = () => {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const [inputValue, setInputValue] = useState("");
-  const [showPushPopup, setShowPushPopup] = useState(false);
+  const [showEnqueuePopup, setShowEnqueuePopup] = useState(false);
+  const [showRuntimeCode, setShowRuntimeCode] = useState(true);
 
-  // Initialize with 4 random elements (numbers 10-99)
+  // Initialize with 4 random elements
   const initialArray = Array.from({ length: 4 }, () =>
     Math.floor(Math.random() * 90 + 10).toString()
   );
 
-  const [state, setState] = useState<StackState>({
+  const [state, setState] = useState<QueueState>({
     array: initialArray,
-    top: initialArray.length - 1,
-    maxSize: 7,
+    front: 0,
+    rear: initialArray.length - 1,
+    maxSize: 9,
     operation: "idle",
     isAnimating: false,
   });
+
   const [showCode, setShowCode] = useState(false);
-  const [showRuntimeCode, setShowRuntimeCode] = useState(true);
   const [operationMessage, setOperationMessage] = useState(
-    `Stack Size: ${state.array.length}`
+    `Queue Size: ${state.array.length}`
   );
   const [animatingBlock, setAnimatingBlock] = useState<{
     value: string;
@@ -55,37 +58,37 @@ const StackViz: React.FC = () => {
 
   const width = 1450;
   const height = 500;
-  const margin = { top: 50, right: 50, bottom: 100, left: 50 };
-  const stackBoxWidth = 120;
-  const stackBoxHeight = 300;
-  const blockSize = 40;
-  const blockWidth = 110; // Wider rectangle
-  const blockHeight = 40; // Same height as before
-  const centerX = width / 2;
-  const stackBoxX = centerX - stackBoxWidth / 2;
-  const stackBoxY = height - margin.bottom - stackBoxHeight;
+  const margin = { top: 50, right: 50, bottom: 80, left: 50 };
+  const queueBoxWidth = 800;
+  const queueBoxHeight = 100;
+  const blockWidth = 80;
+  const blockHeight = 60;
+  const centerY = height / 2;
+  const queueBoxX = (width - queueBoxWidth) / 2;
+  const queueBoxY = centerY - queueBoxHeight / 2;
 
-  const currentAlgo = `class Stack {
+  const currentAlgo = `class Queue {
   constructor() {
     this.items = [];
-    this.top = -1;
-    this.maxSize = 7;
+    this.front = 0;
+    this.rear = -1;
+    this.maxSize = 9;
   }
 
-  push(value) {
-    if (this.top >= this.maxSize - 1) return false;
-    this.items[++this.top] = value;
+  enqueue(value) {
+    if (this.rear >= this.maxSize - 1) return false;
+    this.items[++this.rear] = value;
     return true;
   }
 
-  pop() {
-    if (this.top < 0) return null;
-    return this.items[this.top--];
+  dequeue() {
+    if (this.front > this.rear) return null;
+    return this.items[this.front++];
   }
 
   peek() {
-    if (this.top < 0) return null;
-    return this.items[this.top];
+    if (this.front > this.rear) return null;
+    return this.items[this.front];
   }
 }`;
 
@@ -95,25 +98,30 @@ const StackViz: React.FC = () => {
     const svg = d3.select(svgRef.current);
     svg.selectAll("*").remove();
 
-    // Draw stack items
+    // Draw queue items (horizontal)
     state.array.forEach((item, i) => {
-      const itemY = stackBoxY + stackBoxHeight - (i + 1) * blockHeight;
-      const isTopItem = i === state.top && state.operation !== "pop";
+      const itemX = queueBoxX + 10 + i * (blockWidth + 5);
+      const isFrontItem = i === state.front;
+      const isRearItem = i === state.rear;
 
-      // Skip drawing the top item completely during pop animation
-      if (state.operation === "pop" && state.isAnimating && i === state.top) {
-        return; // Skip this iteration - don't draw the top item at all
+      // Skip drawing the front item during dequeue animation
+      if (
+        state.operation === "dequeue" &&
+        state.isAnimating &&
+        i === state.front
+      ) {
+        return; // Skip this iteration - don't draw the front item at all
       }
 
-      if (itemY >= stackBoxY) {
-        // Stack block
+      if (itemX + blockWidth <= queueBoxX + queueBoxWidth) {
+        // Queue block
         svg
           .append("rect")
-          .attr("x", centerX - blockWidth / 2)
-          .attr("y", itemY)
+          .attr("x", itemX)
+          .attr("y", centerY - blockHeight / 2 )
           .attr("width", blockWidth)
           .attr("height", blockHeight)
-          .attr("fill", isTopItem ? "#4ADE80" : "#60A5FA")
+          .attr("fill", isFrontItem ? "#4ADE80" : "#60A5FA")
           .attr("rx", 4)
           .attr("stroke", "#E5E7EB")
           .attr("stroke-width", 1);
@@ -121,14 +129,33 @@ const StackViz: React.FC = () => {
         // Value text
         svg
           .append("text")
-          .attr("x", centerX)
-          .attr("y", itemY + blockHeight / 2)
+          .attr("x", itemX + blockWidth / 2)
+          .attr("y", queueBoxY + queueBoxHeight / 2)
           .attr("text-anchor", "middle")
           .attr("dominant-baseline", "middle")
           .attr("fill", "white")
           .attr("font-weight", "bold")
-          .attr("font-size", "14px")
           .text(item);
+
+        // Front/Rear indicators
+        if (isFrontItem) {
+          svg
+            .append("text")
+            .attr("x", itemX + blockWidth / 2)
+            .attr("y", queueBoxY + queueBoxHeight + 20)
+            .attr("text-anchor", "middle")
+            .attr("fill", "#16A34A")
+            .text("Front");
+        }
+        if (isRearItem) {
+          svg
+            .append("text")
+            .attr("x", itemX + blockWidth / 2)
+            .attr("y", queueBoxY - 10)
+            .attr("text-anchor", "middle")
+            .attr("fill", "#16A34A")
+            .text("Rear");
+        }
       }
     });
 
@@ -153,176 +180,151 @@ const StackViz: React.FC = () => {
         .attr("dominant-baseline", "middle")
         .attr("fill", "white")
         .attr("font-weight", "bold")
-        .attr("font-size", "14px")
         .text(animatingBlock.value);
-    }
-
-    // Top indicator
-    if (state.top >= 0) {
-      const topItemY = stackBoxY + stackBoxHeight - (state.top + 1) * blockSize;
-      if (topItemY >= stackBoxY) {
-        svg
-          .append("text")
-          .attr("x", stackBoxX + stackBoxWidth + 10)
-          .attr("y", topItemY + blockSize / 2)
-          .attr("text-anchor", "start")
-          .attr("fill", "#16A34A")
-          .attr("font-weight", "bold")
-          .attr("font-size", "20px")
-          .text("← Top");
-      }
     }
 
     // Operation message
     svg
       .append("text")
-      .attr("x", centerX)
-      .attr("y", stackBoxY - 20)
+      .attr("x", width / 2)
+      .attr("y", queueBoxY - 100)
       .attr("text-anchor", "middle")
       .attr("fill", "#4B5563")
-      .attr("font-size", "16px")
       .text(operationMessage);
 
-    // Stack label
+    // Queue label
     svg
       .append("text")
-      .attr("x", centerX)
-      .attr("y", stackBoxY + stackBoxHeight + 30)
+      .attr("x", width / 2)
+      .attr("y", queueBoxY + queueBoxHeight + 40)
       .attr("text-anchor", "middle")
       .attr("fill", "#6B7280")
-      .attr("font-size", "14px")
-      .text("Stack");
+      .text("Queue");
   }, [state, operationMessage, animatingBlock]);
 
   const sleep = (ms: number): Promise<void> =>
     new Promise((resolve) => setTimeout(resolve, ms));
 
-  const pushItem = async () => {
+  const enqueueItem = async () => {
     if (!inputValue.trim()) return;
-    if (state.isAnimating || state.top >= state.maxSize - 1) {
-      setOperationMessage("Stack is full!");
+    if (state.isAnimating || state.rear >= state.maxSize - 1) {
+      setOperationMessage("Queue is full!");
       return;
     }
 
-    setState((prev) => ({ ...prev, isAnimating: true, operation: "push" }));
-    setOperationMessage(`Pushing "${inputValue}" to stack...`);
-    setShowPushPopup(false);
+    setState((prev) => ({ ...prev, isAnimating: true, operation: "enqueue" }));
+    setOperationMessage(`Enqueuing "${inputValue}"...`);
+    setShowEnqueuePopup(false);
 
-    // Animation: Block comes in from left
-    const startX = centerX - blockWidth / 2 - 100; // Start left of center
-    const startY = stackBoxY + stackBoxHeight - (state.top + 2) * blockHeight;
-    const endX = centerX - blockWidth / 2; // End at center position
+    // Animation: Block comes from top
+    const startX = queueBoxX + 10 + (state.rear + 1) * (blockWidth + 5);
+    const startY = queueBoxY - 100;
+    const endY = queueBoxY + (queueBoxHeight - blockHeight) / 2;
 
-    // const endY = startY;
-
-    // Animate the block moving in
     setAnimatingBlock({ value: inputValue, x: startX, y: startY });
     await sleep(200);
 
-    // Animate movement
+    // Animate movement down
     const steps = 20;
     for (let i = 0; i <= steps; i++) {
       const progress = i / steps;
-      const currentX = startX + (endX - startX) * progress;
-      setAnimatingBlock({ value: inputValue, x: currentX, y: startY });
+      const currentY = startY + (endY - startY) * progress;
+      setAnimatingBlock({ value: inputValue, x: startX, y: currentY });
       await sleep(50);
     }
 
-    // Add to stack
+    // Add to queue
     setState((prev) => ({
       ...prev,
       array: [...prev.array, inputValue],
-      top: prev.top + 1,
-      operationValue: inputValue,
+      rear: prev.rear + 1,
     }));
     setAnimatingBlock(null);
 
-    setOperationMessage(`Pushed "${inputValue}". Stack Size: ${state.top + 2}`);
+    setOperationMessage(
+      `Enqueued "${inputValue}". Size: ${state.array.length + 1}`
+    );
     setInputValue("");
     await sleep(500);
 
     setState((prev) => ({ ...prev, isAnimating: false, operation: "idle" }));
   };
 
-  const popItem = async () => {
-    if (state.isAnimating || state.top < 0) return;
+  const dequeueItem = async () => {
+    if (state.isAnimating || state.front > state.rear) {
+      setOperationMessage("Queue is empty!");
+      return;
+    }
 
-    const poppedValue = state.array[state.top];
-    setOperationMessage(`Popping "${poppedValue}" from stack...`);
+    const dequeuedValue = state.array[state.front];
+    setOperationMessage(`Dequeuing "${dequeuedValue}"...`);
 
-    // Start animation - don't modify array yet
     setState((prev) => ({
       ...prev,
       isAnimating: true,
-      operation: "pop",
-      operationValue: undefined, // Clear any previous highlight
+      operation: "dequeue",
     }));
 
     // Animation positions
-    const startX = centerX - blockWidth / 2;
-    const startY = stackBoxY + stackBoxHeight - (state.top + 1) * blockHeight;
-    const endX = centerX + blockWidth / 2 + 100;
+    const startX = queueBoxX + 10 + state.front * (blockWidth + 5);
+    const startY = queueBoxY + (queueBoxHeight - blockHeight) / 2;
+    const endY = startY - 100;
 
-    // Show the block being popped
-    setAnimatingBlock({ value: poppedValue, x: startX, y: startY });
+    setAnimatingBlock({ value: dequeuedValue, x: startX, y: startY });
     await sleep(200);
 
-    // Animate movement to right
+    // Animate movement up
     const steps = 20;
     for (let i = 0; i <= steps; i++) {
       const progress = i / steps;
-      const currentX = startX + (endX - startX) * progress;
-      setAnimatingBlock({ value: poppedValue, x: currentX, y: startY });
+      const currentY = startY + (endY - startY) * progress;
+      setAnimatingBlock({ value: dequeuedValue, x: startX, y: currentY });
       await sleep(50);
     }
 
-    // Now remove from stack and update top
-    setState((prev) => {
-      const newTop = prev.top - 1;
-      return {
-        ...prev,
-        array: prev.array.slice(0, -1),
-        top: newTop,
-        operationValue: newTop >= 0 ? prev.array[newTop] : undefined, // Highlight new top if exists
-      };
-    });
-
-    setAnimatingBlock(null);
-
-    if (state.top - 1 < 0) {
-      setOperationMessage("Stack is empty");
-    } else {
-      setOperationMessage(`Popped "${poppedValue}". Stack Size: ${state.top}`);
-    }
-
-    // At the end of your popItem function:
+    // Remove from queue
     setState((prev) => ({
       ...prev,
-      isAnimating: false,
-      operation: "idle", // Reset operation to idle
+      array: prev.array.slice(1),
+      front: prev.front,
+      rear: prev.rear - 1,
     }));
+    setAnimatingBlock(null);
+
+    if (state.front >= state.rear - 1) {
+      setOperationMessage("Queue is empty");
+    } else {
+      setOperationMessage(
+        `Dequeued "${dequeuedValue}". Size: ${state.array.length - 1}`
+      );
+    }
+    await sleep(500);
+
+    setState((prev) => ({ ...prev, isAnimating: false, operation: "idle" }));
   };
 
   const peekItem = async () => {
-    if (state.isAnimating || state.top < 0) return;
+    if (state.isAnimating || state.front > state.rear) {
+      setOperationMessage("Queue is empty!");
+      return;
+    }
 
     setState((prev) => ({ ...prev, isAnimating: true, operation: "peek" }));
-    setOperationMessage(`Peeking at top item...`);
+    setOperationMessage(`Peeking at front item...`);
 
     await sleep(500);
 
-    const topValue = state.array[state.top];
-    setOperationMessage(`Top item is "${topValue}"`);
+    const frontValue = state.array[state.front];
+    setOperationMessage(`Front item is "${frontValue}"`);
     await sleep(1000);
 
     setState((prev) => ({ ...prev, isAnimating: false, operation: "idle" }));
   };
 
-  const resetStack = async () => {
+  const resetQueue = async () => {
     setState((prev) => ({ ...prev, isAnimating: true }));
-    setOperationMessage("Resetting stack...");
+    setOperationMessage("Resetting queue...");
 
-    // Reset with 4 new random elements
     const newArray = Array.from({ length: 4 }, () =>
       Math.floor(Math.random() * 90 + 10).toString()
     );
@@ -331,13 +333,14 @@ const StackViz: React.FC = () => {
 
     setState({
       array: newArray,
-      top: newArray.length - 1,
+      front: 0,
+      rear: newArray.length - 1,
       maxSize: 7,
       operation: "idle",
       isAnimating: false,
     });
 
-    setOperationMessage(`Stack reset. Size: ${state.array.length}`);
+    setOperationMessage(`Queue reset. Size: ${newArray.length}`);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -346,7 +349,7 @@ const StackViz: React.FC = () => {
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
-      pushItem();
+      enqueueItem();
     }
   };
 
@@ -358,17 +361,17 @@ const StackViz: React.FC = () => {
 
       <div className="flex flex-col gap-4 w-full max-w-md">
         <div className="flex gap-4 justify-center">
-          <Button onClick={resetStack} size="icon" variant="outline">
+          <Button onClick={resetQueue} size="icon" variant="outline">
             <RotateCcw className="h-4 w-4" />
           </Button>
 
-          <Popover open={showPushPopup} onOpenChange={setShowPushPopup}>
+          <Popover open={showEnqueuePopup} onOpenChange={setShowEnqueuePopup}>
             <PopoverTrigger asChild>
               <Button
-                disabled={state.isAnimating || state.top >= state.maxSize - 1}
+                disabled={state.isAnimating || state.rear >= state.maxSize - 1}
                 className="bg-black hover:bg-black-700"
               >
-                Push
+                Enqueue
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-40 p-2">
@@ -377,32 +380,32 @@ const StackViz: React.FC = () => {
                   value={inputValue}
                   onChange={handleInputChange}
                   onKeyPress={handleKeyPress}
-                  placeholder="Enter value to push"
+                  placeholder="Enter value"
                   autoFocus
                   maxLength={10}
                 />
                 <Button
-                  onClick={pushItem}
+                  onClick={enqueueItem}
                   disabled={!inputValue.trim()}
                   className="w-full bg-black hover:bg-black-700"
                 >
-                  Confirm Push
+                  Confirm
                 </Button>
               </div>
             </PopoverContent>
           </Popover>
 
           <Button
-            onClick={popItem}
-            disabled={state.isAnimating || state.top < 0}
+            onClick={dequeueItem}
+            disabled={state.isAnimating || state.front > state.rear}
             className="bg-black hover:bg-black-700"
           >
-            Pop
+            Dequeue
           </Button>
 
           <Button
             onClick={peekItem}
-            disabled={state.isAnimating || state.top < 0}
+            disabled={state.isAnimating || state.front > state.rear}
             className="bg-black hover:bg-black-700"
           >
             Peek
@@ -430,9 +433,9 @@ const StackViz: React.FC = () => {
         showRuntimeCode={showRuntimeCode}
         currentAlgo={currentAlgo}
         currentLine={
-          state.operation === "push"
+          state.operation === "enqueue"
             ? [7, 8]
-            : state.operation === "pop"
+            : state.operation === "dequeue"
             ? [12, 13]
             : state.operation === "peek"
             ? [17, 18]
@@ -443,4 +446,4 @@ const StackViz: React.FC = () => {
   );
 };
 
-export default StackViz;
+export default QueueViz;
