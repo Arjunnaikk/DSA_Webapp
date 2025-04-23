@@ -4,8 +4,22 @@ import SelectionSortViz from "@/components/SelectionSortViz";
 import InsertionSortViz from "@/components/InsertionSortViz";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import BSTVisualizationInfix from "@/components/InfixNotationTree";
+import BSTVisualization from "@/components/TreeViz";
 import Link from "next/link";
-import { useRouter } from 'next/navigation';
+import { useRouter } from "next/navigation";
+import BSTPrefixVisualization from "@/components/PrefixNoatationTree";
+import SpeedControlSlider from "./SpeedControlSlider";
+import BFSVisualization from "./BFSVisualization";
+import LinearSearchViz from "./LinearSearchViz";
+import DFSVisualization from "./DFSVisualization";
+import BinarySearchViz from "./BinarySearchViz";
+import StackViz from "./StackViz";
+import QueueViz from "./QueueViz";
+import LinkedListViz from "./LinkedListViz";
+import KMPVisualization from "./KmpVix";
+import BSTPostfixVisualization from "./PostfixNotationTree";
+import RabinKarpVisualization from "./RabinKarp";
 import {
   ArrowDownUp,
   RefreshCw,
@@ -24,21 +38,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import SpeedControlSlider from "./SpeedControlSlider";
-import BFSVisualization from "./BFSVisualization";
-import LinearSearchViz from "./LinearSearchViz";
-import DFSVisualization from "./DFSVisualization";
-import BinarySearchViz from "./BinarySearchViz";
-import StackViz from "./StackViz";
-import QueueViz from "./QueueViz";
-import LinkedListViz from "./LinkedListViz";
 
 // Algorithm categories
 const ALGORITHM_CATEGORIES = {
   sorting: ["selection", "insertion"],
   searching: ["linear", "binary"],
   traversal: ["bfs", "dfs"],
-  dataStructure: ["stack", "queue", "linked"]
+  dataStructure: ["stack", "queue", "linked"],
+  tree: ["binaryTree", "prefix", "infix", "postfix"],
+  string: ["kmp", "rabinKarp"],
 };
 
 // Algorithm display names
@@ -51,7 +59,13 @@ const ALGORITHM_NAMES = {
   dfs: "DFS Graph Traversal",
   stack: "Stack",
   queue: "Queue",
-  linked: "Linked List"
+  linked: "Linked List",
+  infix: "Infix Notation",
+  binaryTree: "Binary Tree",
+  prefix: "Prefix Notation",
+  postfix: "Postfix Notation",
+  kmp: "KMP",
+  rabinKarp: "Rabin Karp",
 };
 
 // Function to get category based on algorithm
@@ -73,7 +87,9 @@ const Functions = ({ initialAlgorithm, initialCategory }: FunctionsProps) => {
   const router = useRouter();
   const [isControlsOpen, setIsControlsOpen] = useState(false);
   const [algorithm, setAlgorithm] = useState(initialAlgorithm || "selection");
-  const [category, setCategory] = useState(initialCategory || getAlgorithmCategory(initialAlgorithm || "selection"));
+  const [category, setCategory] = useState(
+    initialCategory || getAlgorithmCategory(initialAlgorithm || "selection")
+  );
   const [arraySize, setArraySize] = useState("6");
   const [userArray, setUserArray] = useState(
     Array.from({ length: 6 }, () => Math.floor(Math.random() * 100) + 1).join(
@@ -102,7 +118,8 @@ const Functions = ({ initialAlgorithm, initialCategory }: FunctionsProps) => {
   const handleCategoryChange = (value: string) => {
     setCategory(value);
     // Select the first algorithm from the new category
-    const newAlgo = ALGORITHM_CATEGORIES[value as keyof typeof ALGORITHM_CATEGORIES][0];
+    const newAlgo =
+      ALGORITHM_CATEGORIES[value as keyof typeof ALGORITHM_CATEGORIES][0];
     setAlgorithm(newAlgo);
     router.push(`/${newAlgo}`);
   };
@@ -184,7 +201,7 @@ const Functions = ({ initialAlgorithm, initialCategory }: FunctionsProps) => {
               EzzAlgo
             </span>
           </Link>
-          
+
           {/* Category Selector */}
           <Select value={category} onValueChange={handleCategoryChange}>
             <SelectTrigger className="w-48 bg-white border-2 border-gray-200 hover:border-indigo-400 text-gray-800 h-[30px] w-[10rem] transition-colors">
@@ -195,16 +212,20 @@ const Functions = ({ initialAlgorithm, initialCategory }: FunctionsProps) => {
               <SelectItem value="searching">Searching Algorithms</SelectItem>
               <SelectItem value="traversal">Graph Traversal</SelectItem>
               <SelectItem value="dataStructure">Data Structures</SelectItem>
+              <SelectItem value="tree">Tree</SelectItem>
+              <SelectItem value="string">String</SelectItem>
             </SelectContent>
           </Select>
-          
+
           {/* Algorithm Selector - Now filtered by category */}
           <Select value={algorithm} onValueChange={handleAlgorithmChange}>
             <SelectTrigger className="w-48 bg-white border-2 border-gray-200 hover:border-indigo-400 text-gray-800 h-[30px] w-[10rem] transition-colors">
               <SelectValue placeholder="Select Algorithm" />
             </SelectTrigger>
             <SelectContent>
-              {ALGORITHM_CATEGORIES[category as keyof typeof ALGORITHM_CATEGORIES].map((algo) => (
+              {ALGORITHM_CATEGORIES[
+                category as keyof typeof ALGORITHM_CATEGORIES
+              ].map((algo) => (
                 <SelectItem key={algo} value={algo}>
                   {ALGORITHM_NAMES[algo as keyof typeof ALGORITHM_NAMES]}
                 </SelectItem>
@@ -212,7 +233,7 @@ const Functions = ({ initialAlgorithm, initialCategory }: FunctionsProps) => {
             </SelectContent>
           </Select>
         </div>
-        
+
         {/* Rest of the navbar */}
         <div className="flex items-center gap-4">
           <ModeToggle />
@@ -375,6 +396,19 @@ const Functions = ({ initialAlgorithm, initialCategory }: FunctionsProps) => {
                 <QueueViz />
               ) : algorithm === "linked" ? (
                 <LinkedListViz />
+              ) : algorithm === "binaryTree" ? (
+                <BSTVisualization />
+              ) : algorithm === "prefix" ? (
+                <BSTPrefixVisualization />
+              ) : algorithm === "infix" ? (
+                <BSTVisualizationInfix />
+              ) : algorithm === "postfix" ? (
+                <BSTPostfixVisualization />
+              ) : algorithm === "kmp" ? (
+                <KMPVisualization />
+              ) : // "  "
+              algorithm === "rabinKarp" ? (
+                <RabinKarpVisualization />
               ) : (
                 <LinearSearchViz array={currentArray} speed={speed} />
               )}
@@ -382,34 +416,44 @@ const Functions = ({ initialAlgorithm, initialCategory }: FunctionsProps) => {
           )}
 
           {/* Main Page Controls */}
-          {algorithm !== "bfs" && algorithm !== "dfs" && algorithm !== "stack" &&  algorithm !== "queue" && algorithm !== "linked" && (
-            <div className=" space-y-8 left-[30%] w-[40vw] max-w-3xl mx-auto p-2 ">
-              <div className="flex items-center space-x-2">
-                <Input
-                  type="text"
-                  placeholder="Enter your custom array (e.g. 3, 1, 4, 1, 5, 9)"
-                  value={userArray}
-                  onChange={handleArrayInput}
-                  className="flex-grow"
-                />
-                <Button
-                  variant="outline"
-                  onClick={duplicateArray}
-                  title="Duplicate Array"
-                  className="min-w-[40px]"
-                >
-                  <Copy className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="default"
-                  onClick={handleGoClick}
-                  className="bg-blue-500 hover:bg-blue-600 text-white min-w-[60px]"
-                >
-                  Go
-                </Button>
+          {algorithm !== "bfs" &&
+            algorithm !== "dfs" &&
+            algorithm !== "stack" &&
+            algorithm !== "queue" &&
+            algorithm !== "linked" &&
+            algorithm !== "binaryTree" &&
+            algorithm !== "infix" &&
+            algorithm !== "prefix" &&
+            algorithm !== "postfix" &&
+            algorithm !== "kmp" &&
+            algorithm !== "rabinKarp" && (
+              <div className=" space-y-8 left-[30%] w-[40vw] max-w-3xl mx-auto p-2 ">
+                <div className="flex items-center space-x-2">
+                  <Input
+                    type="text"
+                    placeholder="Enter your custom array (e.g. 3, 1, 4, 1, 5, 9)"
+                    value={userArray}
+                    onChange={handleArrayInput}
+                    className="flex-grow"
+                  />
+                  <Button
+                    variant="outline"
+                    onClick={duplicateArray}
+                    title="Duplicate Array"
+                    className="min-w-[40px]"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="default"
+                    onClick={handleGoClick}
+                    className="bg-blue-500 hover:bg-blue-600 text-white min-w-[60px]"
+                  >
+                    Go
+                  </Button>
+                </div>
               </div>
-            </div>
-          )}
+            )}
         </div>
       </div>
     </div>

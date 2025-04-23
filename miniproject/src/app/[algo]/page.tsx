@@ -1,14 +1,16 @@
-'use client'
-import { useEffect, useState } from 'react'
-import { useParams } from 'next/navigation'
-import Functions from '@/components/Function'
+"use client";
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
+import Functions from "@/components/Function";
 
 // Same algorithm categories as in Function.tsx
 const ALGORITHM_CATEGORIES = {
   sorting: ["selection", "insertion"],
   searching: ["linear", "binary"],
   traversal: ["bfs", "dfs"],
-  dataStructure: ["stack", "queue", "linked"]
+  dataStructure: ["stack", "queue", "linked"],
+  tree: ["binaryTree", "prefix", "infix", "postfix"],
+  string: ["kmp", "rabinKarp"],
 };
 
 // Function to get category based on algorithm
@@ -22,20 +24,20 @@ const getAlgorithmCategory = (algo: string) => {
 };
 
 export default function AlgorithmPage() {
-  const [mounted, setMounted] = useState(false)
+  const [mounted, setMounted] = useState(false);
   const params = useParams();
   const algo = params.algo as string;
   const category = getAlgorithmCategory(algo);
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    setMounted(true);
+  }, []);
 
-  if (!mounted) return null
+  if (!mounted) return null;
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center">
       <Functions initialAlgorithm={algo} initialCategory={category} />
     </main>
-  )
+  );
 }
