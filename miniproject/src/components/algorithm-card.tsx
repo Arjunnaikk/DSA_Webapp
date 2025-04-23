@@ -155,6 +155,113 @@ export function AlgorithmCard({ id, title, description, className }: AlgorithmCa
             ctx.stroke();
           }
         }
+      } else if (id === 'searching') {
+        // Draw search visualization
+        const gridSize = 6;
+        const cellSize = Math.min(canvas.width, canvas.height) / gridSize;
+        
+        ctx.fillStyle = isHovered ? 'rgba(249, 115, 22, 0.3)' : 'rgba(226, 232, 240, 0.3)';
+        ctx.strokeStyle = isHovered ? '#f97316' : '#e2e8f0';
+        ctx.lineWidth = 1;
+        
+        // Draw grid cells
+        for (let i = 0; i < gridSize; i++) {
+          for (let j = 0; j < gridSize; j++) {
+            ctx.fillRect(
+              i * cellSize, 
+              j * cellSize, 
+              cellSize, 
+              cellSize
+            );
+            ctx.strokeRect(
+              i * cellSize, 
+              j * cellSize, 
+              cellSize, 
+              cellSize
+            );
+          }
+        }
+        
+        // Highlight search path
+        ctx.fillStyle = isHovered ? '#f97316' : '#94a3b8';
+        
+        // Binary search pattern
+        const row = Math.floor(gridSize / 2);
+        for (let i = 0; i < gridSize; i += 2) {
+          ctx.fillRect(
+            i * cellSize, 
+            row * cellSize, 
+            cellSize, 
+            cellSize
+          );
+        }
+        
+        // Target found
+        ctx.fillStyle = isHovered ? '#ea580c' : '#64748b';
+        ctx.fillRect(
+          4 * cellSize, 
+          row * cellSize, 
+          cellSize, 
+          cellSize
+        );
+        
+        // Draw magnifying glass
+        ctx.strokeStyle = isHovered ? '#f97316' : '#e2e8f0';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(
+          canvas.width - 50, 
+          50, 
+          20, 
+          0, 
+          Math.PI * 2
+        );
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(canvas.width - 38, 62);
+        ctx.lineTo(canvas.width - 25, 75);
+        ctx.stroke();
+      } else if (id === 'strings') {
+        // Draw string pattern matching
+        ctx.fillStyle = isHovered ? '#f97316' : '#e2e8f0';
+        ctx.font = '16px monospace';
+        
+        const text = "ABCABABCABCAB";
+        const pattern = "ABCAB";
+        const y = canvas.height / 2;
+        const charWidth = canvas.width / (text.length + 2);
+        
+        // Draw text
+        for (let i = 0; i < text.length; i++) {
+          ctx.fillText(
+            text[i], 
+            (i + 1) * charWidth, 
+            y - 20
+          );
+        }
+        
+        // Draw pattern with offset
+        ctx.fillStyle = isHovered ? '#ea580c' : '#94a3b8';
+        for (let i = 0; i < pattern.length; i++) {
+          ctx.fillText(
+            pattern[i], 
+            (i + 3) * charWidth, 
+            y + 20
+          );
+        }
+        
+        // Draw matching lines
+        ctx.strokeStyle = isHovered ? 'rgba(249, 115, 22, 0.6)' : 'rgba(226, 232, 240, 0.6)';
+        ctx.lineWidth = 1;
+        
+        for (let i = 0; i < pattern.length; i++) {
+          if (text[i + 2] === pattern[i]) {
+            ctx.beginPath();
+            ctx.moveTo((i + 3) * charWidth + 4, y - 10);
+            ctx.lineTo((i + 3) * charWidth + 4, y + 10);
+            ctx.stroke();
+          }
+        }
       }
     };
     
