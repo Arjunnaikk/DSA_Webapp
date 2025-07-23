@@ -27,11 +27,11 @@ Students and DSA learners often face the following challenges:
 
 | Category        | Tool / Technology  |
 | --------------- | ------------------ |
-| Markup          | HTML5              |
-| Styling         | CSS3, Bootstrap    |
-| Scripting       | JavaScript         |
+| Languages       | Typscript, Js      |
+| Framework       | Next Js, D3 Js     |
+| Database        | Java Spring Boot   |
 | Version Control | Git & GitHub       |
-| Deployment      | GitHub Pages       |
+| Deployment      | Render             |
 
 ## 🔧 Module Overview & Functions
 
