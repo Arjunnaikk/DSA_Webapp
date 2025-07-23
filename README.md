@@ -5,7 +5,7 @@
 
 The **DSA Web Application** is an interactive, browser-based platform designed to help users understand, visualize, and practice **Data Structures and Algorithms (DSA)**. It provides a centralized space for learning core DSA topics through visuals, explanations, and interactive UI modules. The application aims to assist both beginners and intermediate learners in improving their problem-solving skills and grasping abstract DSA concepts with greater ease.
 
-Built using **HTML, CSS, JavaScript, and Bootstrap**, this responsive web app delivers a seamless user experience across devices and browsers. Each topic is modularized and supported with intuitive buttons and explanations, making it ideal for self-paced learning.
+Built using **JavaScript, Typescript, Next js, D3 js and Java Spring Boot**, this responsive web app delivers a seamless user experience across devices and browsers. Each topic is modularized and supported with intuitive buttons and explanations, making it ideal for self-paced learning.
 
 ## 🎯 Problem Statement
 
